@@ -48,6 +48,17 @@ jobs:
             echo "KEEPA_API_KEY is not configured; Worker will remain safely unavailable with HTTP 503."
           fi
 
+      - name: Upload OpenAI API key as an encrypted Worker secret (when configured)
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -n "$OPENAI_API_KEY" ]; then
+            printf '%s' "$OPENAI_API_KEY" | npx wrangler secret put OPENAI_API_KEY
+          else
+            echo "OPENAI_API_KEY is not configured; AI photo assistant will return HTTP 503 until the secret is added."
+          fi
       - name: Deploy Worker
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
