@@ -453,3 +453,12 @@ test("appearance theme selection applies preset colors and custom edits switch t
   assert.match(block, /saveAppearance\(\)/);
   assert.match(block, /appearance=\{\.\.\.APPEARANCE_DEFAULTS\}/);
 });
+
+
+test("settings load before appearance initialization so app startup cannot hit a settings temporal-dead-zone error", () => {
+  const settingsDeclaration = appScript.indexOf("let settings={minProfit:7,minRoi:100}");
+  const settingsLoad = appScript.indexOf("settings={...settings,...JSON.parse(localStorage.getItem(SETKEY)||'{}')}");
+  const appearanceInit = appScript.indexOf("let appearance={...APPEARANCE_DEFAULTS,...(settings.appearance||{})}");
+  assert.ok(settingsDeclaration >= 0 && settingsLoad > settingsDeclaration && appearanceInit > settingsLoad);
+  assert.equal((appScript.match(/let settings=/g)||[]).length, 1);
+});
