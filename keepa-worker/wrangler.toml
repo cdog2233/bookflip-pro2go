@@ -5,6 +5,7 @@ workers_dev = true
 
 [vars]
 ALLOWED_ORIGIN = "https://cdog2233.github.io"
+OPENAI_MODEL = "gpt-6-astra"
 
 [secrets]
 required = ["KEEPA_API_KEY"]
