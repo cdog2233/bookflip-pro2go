@@ -80,11 +80,19 @@ export default {
     };
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     const url = new URL(request.url);
-    if (url.pathname !== "/api/keepa/product" || request.method !== "POST") {
+    const isBookAssistant = url.pathname === "/api/book-assistant";
+    const isKeepa = url.pathname === "/api/keepa/product";
+    if ((!isBookAssistant && !isKeepa) || request.method !== "POST") {
       return json({ error: "Not found." }, 404, allowedOrigin);
     }
-    if (!env.KEEPA_API_KEY) return json({ error: "Keepa API key is not configured on the server." }, 503, allowedOrigin);
-    if (Number(request.headers.get("Content-Length") || 0) > 2048) {
+    if (isBookAssistant && !env.OPENAI_API_KEY) {
+      return json({ error: "The AI book assistant is not configured on the server yet." }, 503, allowedOrigin);
+    }
+    if (isKeepa && !env.KEEPA_API_KEY) {
+      return json({ error: "Keepa API key is not configured on the server." }, 503, allowedOrigin);
+    }
+    const maxBody = isBookAssistant ? 5_500_000 : 2048;
+    if (Number(request.headers.get("Content-Length") || 0) > maxBody) {
       return json({ error: "Request is too large." }, 413, allowedOrigin);
     }
 
@@ -96,10 +104,69 @@ export default {
       let body;
       try {
         const rawBody = await request.text();
-        if (rawBody.length > 2048) return json({ error: "Request is too large." }, 413, allowedOrigin);
+        if (rawBody.length > maxBody) return json({ error: "Request is too large." }, 413, allowedOrigin);
         body = JSON.parse(rawBody);
       } catch { return json({ error: "Send a valid JSON request." }, 400, allowedOrigin); }
-      if (!body || typeof body !== "object" || Array.isArray(body)) return json({ error: "Send a JSON object with an ASIN." }, 400, allowedOrigin);
+      if (!body || typeof body !== "object" || Array.isArray(body)) {
+        return json({ error: "Send a JSON object." }, 400, allowedOrigin);
+      }
+
+      if (isBookAssistant) {
+        const question = String(body.question || "").trim().slice(0, 1200);
+        const images = Array.isArray(body.images) ? body.images : [];
+        const history = Array.isArray(body.history) ? body.history.slice(-8) : [];
+        if (!question) return json({ error: "Enter a question for the book assistant." }, 400, allowedOrigin);
+        if (images.length > 4) return json({ error: "Use up to four book photos at a time." }, 400, allowedOrigin);
+        const imagePattern = /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
+        if (images.some(image => typeof image !== "string" || image.length > 1_200_000 || !imagePattern.test(image))) {
+          return json({ error: "One of the photos is invalid or too large. Use JPEG, PNG or WebP images under 1.2 MB each." }, 400, allowedOrigin);
+        }
+        const priorMessages = history.filter(item =>
+          item && (item.role === "user" || item.role === "assistant") &&
+          typeof item.content === "string" && item.content.trim()
+        ).map(item => ({ role: item.role, content: item.content.slice(0, 1600) }));
+        const content = [{ type: "input_text", text: question }];
+        images.forEach(image_url => content.push({
+          type: "input_image",
+          image_url,
+          detail: "high"
+        }));
+        const upstream = await fetch("https://api.openai.com/v1/responses", {
+          method: "POST",
+          headers: {
+            "authorization": "Bearer " + env.OPENAI_API_KEY,
+            "content-type": "application/json",
+            "accept": "application/json"
+          },
+          body: JSON.stringify({
+            model: env.OPENAI_MODEL || "gpt-6-astra",
+            store: false,
+            max_output_tokens: 1000,
+            instructions: "You are BookFlip Pro2Go's careful Amazon book-sourcing assistant. Analyze the user's book photos and question. Read visible cover text, ISBNs and edition clues. Separate what is directly visible from what is inferred. Never invent an ISBN, ASIN, edition, Amazon price, sales rank, demand, eligibility, fees or profit. If a barcode or copyright page is unclear, say so and ask for a sharper photo of that area. Help distinguish hardcover, paperback, textbook, revised editions, international editions, instructor editions and other variants when evidence allows. Give practical next steps for matching the exact Amazon listing and checking condition and Seller Central eligibility. You may estimate only when clearly labeled as an estimate; do not claim to have checked live Amazon data. Keep advice concise and useful while sourcing in a store.",
+            input: [
+              ...priorMessages,
+              { role: "user", content }
+            ]
+          })
+        });
+        if (!upstream.ok) {
+          const status = upstream.status === 429 ? 429 : 502;
+          return json({ error: upstream.status === 429
+            ? "The AI service is busy or its usage limit has been reached. Try again later."
+            : "The AI book analysis could not be completed. Check the server API configuration and try again." }, status, allowedOrigin);
+        }
+        const data = await upstream.json();
+        const output = data.output_text || (Array.isArray(data.output)
+          ? data.output.flatMap(item => Array.isArray(item.content) ? item.content : [])
+              .filter(item => item.type === "output_text").map(item => item.text || "").join("\n")
+          : "");
+        if (!output) return json({ error: "The AI service returned no readable answer. Try a clearer photo or a shorter question." }, 502, allowedOrigin);
+        return json({ answer: String(output).slice(0, 12000) }, 200, allowedOrigin);
+      }
+
+      if (Number(request.headers.get("Content-Length") || 0) > 2048) {
+        return json({ error: "Request is too large." }, 413, allowedOrigin);
+      }
       const asin = String(body.asin || "").trim().toUpperCase();
       if (!/^[A-Z0-9]{10}$/.test(asin)) return json({ error: "Enter a valid 10-character ASIN." }, 400, allowedOrigin);
       const includeOffers = body.includeOffers === true;
@@ -121,7 +188,7 @@ export default {
     } catch (error) {
       const message = String(error && error.message || "");
       const status = /Access token|Sign in|not configured|not authorized|signature|signing key|Invalid access/i.test(message) ? 401 : 502;
-      return json({ error: status === 401 ? message : "The Keepa request could not be completed." }, status, allowedOrigin);
+      return json({ error: status === 401 ? message : "The request could not be completed." }, status, allowedOrigin);
     }
   }
 };
