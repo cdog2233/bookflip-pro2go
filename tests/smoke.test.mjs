@@ -159,6 +159,108 @@ test("secure Worker source parses and rejects bad origin, missing key, and missi
   assert.equal((await worker.fetch(request("https://cdog2233.github.io"), { KEEPA_API_KEY: "not-a-real-key" })).status, 401);
 });
 
+test("AI Book Photo Assistant UI supports camera photos without storing images in localStorage", () => {
+  assert.match(html, /data-tab="photoai"/);
+  assert.match(html, /id="aiPhotoInput"[^>]*accept="image\/jpeg,image\/png,image\/webp"[^>]*capture="environment"[^>]*multiple/);
+  assert.match(html, /id="aiEndpoint"/);
+  assert.match(html, /id="askBookAI"/);
+  assert.match(appScript, /function compressAIPhoto/);
+  assert.match(appScript, /api\/book-assistant/);
+  assert.match(appScript, /credentials:'include'/);
+  assert.match(appScript, /Use ISBN /);
+  assert.doesNotMatch(appScript, /localStorage\.setItem\([^\n]*aiPhotos/);
+});
+
+test("AI Book Photo Worker rejects missing secrets and invalid image payloads", async () => {
+  const source = await readFile(new URL("../keepa-worker/worker.js", import.meta.url), "utf8");
+  const factory = new Function("Response", "URL", "fetch", source.replace("export default {", "return {"));
+  const calls = [];
+  const worker = factory(Response, URL, async (url, init) => {
+    calls.push({ url: String(url), init });
+    return new Response(JSON.stringify({ output_text: "Identified title: Sample Book. ISBN: 9780306406157." }), { status: 200 });
+  });
+  const baseRequest = (body, token = null) => ({
+    method: "POST",
+    url: "https://proxy.test/api/book-assistant",
+    headers: { get: name => ({
+      Origin: "https://cdog2233.github.io",
+      "Content-Length": String(JSON.stringify(body).length),
+      "Cf-Access-Jwt-Assertion": token
+    }[name] ?? null) },
+    text: async () => JSON.stringify(body)
+  });
+  assert.equal((await worker.fetch(baseRequest({ question: "Identify this" }), {})).status, 503);
+  assert.equal((await worker.fetch(baseRequest({ question: "Identify this" }), { OPENAI_API_KEY: "server-secret" })).status, 401);
+  assert.equal((await worker.fetch(baseRequest({ question: "Identify this", images: ["not-an-image"] }), { OPENAI_API_KEY: "server-secret" })).status, 401);
+  assert.equal(calls.length, 0);
+});
+
+test("AI Book Photo Worker verifies Access and forwards compressed photos to OpenAI without exposing the key", async () => {
+  const { webcrypto } = await import("node:crypto");
+  const source = await readFile(new URL("../keepa-worker/worker.js", import.meta.url), "utf8");
+  const factory = new Function("Response", "URL", "fetch", source.replace("export default {", "return {"));
+  const keys = await webcrypto.subtle.generateKey({
+    name: "RSASSA-PKCS1-v1_5", modulusLength: 2048,
+    publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256"
+  }, true, ["sign", "verify"]);
+  const jwk = await webcrypto.subtle.exportKey("jwk", keys.publicKey);
+  jwk.kid = "ai-test-key";
+  const encode = value => Buffer.from(JSON.stringify(value)).toString("base64url");
+  const head = encode({ alg: "RS256", kid: "ai-test-key", typ: "JWT" });
+  const claims = encode({
+    iss: "https://ai-test.cloudflareaccess.com", aud: ["ai-app-aud"],
+    exp: Math.floor(Date.now() / 1000) + 300, nbf: Math.floor(Date.now() / 1000) - 30
+  });
+  const signed = head + "." + claims;
+  const signature = Buffer.from(await webcrypto.subtle.sign(
+    "RSASSA-PKCS1-v1_5", keys.privateKey, new TextEncoder().encode(signed)
+  )).toString("base64url");
+  const token = signed + "." + signature;
+  let upstreamCall;
+  const worker = factory(Response, URL, async (url, init) => {
+    upstreamCall = { url: String(url), init };
+    return new Response(JSON.stringify({ output_text: "Identified title: Sample Book. ISBN: 9780306406157." }), { status: 200 });
+  });
+  const image = "data:image/jpeg;base64," + Buffer.from("sample image bytes").toString("base64");
+  const body = { question: "Identify this edition", images: [image], history: [{ role: "user", content: "What is this?" }] };
+  const raw = JSON.stringify(body);
+  const request = {
+    method: "POST", url: "https://proxy.test/api/book-assistant",
+    headers: { get: name => ({
+      Origin: "https://cdog2233.github.io", "Content-Length": String(raw.length),
+      "Cf-Access-Jwt-Assertion": token
+    }[name] ?? null) },
+    text: async () => raw
+  };
+  const response = await worker.fetch(request, {
+    ALLOWED_ORIGIN: "https://cdog2233.github.io",
+    OPENAI_API_KEY: "private-openai-key",
+    OPENAI_MODEL: "gpt-6-astra",
+    CF_ACCESS_TEAM_DOMAIN: "ai-test.cloudflareaccess.com",
+    CF_ACCESS_AUD: "ai-app-aud"
+  });
+  assert.equal(response.status, 200);
+  const result = await response.json();
+  assert.match(result.answer, /Sample Book/);
+  assert.equal(upstreamCall.url, "https://api.openai.com/v1/responses");
+  assert.equal(upstreamCall.init.headers.authorization, "Bearer private-openai-key");
+  const sent = JSON.parse(upstreamCall.init.body);
+  assert.equal(sent.model, "gpt-6-astra");
+  assert.equal(sent.store, false);
+  assert.ok(sent.input.at(-1).content.some(item => item.type === "input_image" && item.image_url === image));
+  assert.equal(JSON.stringify(result).includes("private-openai-key"), false);
+
+  const invalidBody = JSON.stringify({ question: "Identify this", images: ["not-an-image"] });
+  const invalidRequest = { ...request, headers: { get: name => ({
+    Origin: "https://cdog2233.github.io", "Content-Length": String(invalidBody.length),
+    "Cf-Access-Jwt-Assertion": token
+  }[name] ?? null) }, text: async () => invalidBody };
+  assert.equal((await worker.fetch(invalidRequest, {
+    ALLOWED_ORIGIN: "https://cdog2233.github.io", OPENAI_API_KEY: "private-openai-key",
+    CF_ACCESS_TEAM_DOMAIN: "ai-test.cloudflareaccess.com", CF_ACCESS_AUD: "ai-app-aud"
+  })).status, 400);
+});
+
 test("Keepa API key is declared as a server secret and local secret files are ignored", async () => {
   const config = await readFile(new URL("../keepa-worker/wrangler.toml", import.meta.url), "utf8");
   const ignore = await readFile(new URL("../keepa-worker/.gitignore", import.meta.url), "utf8");
