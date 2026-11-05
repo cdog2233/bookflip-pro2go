@@ -133,7 +133,7 @@ function calc(){
  $('decision').innerHTML='<span class="pill '+cls+'">'+status+'</span><p class="muted" style="margin:8px 0 0">'+why+'</p>';
  return {price,fees:chosen.fees,cost,ship,other,net:chosen.net,roi:chosen.roi,margin:chosen.margin,max:chosen.maxBuy,breakEven:chosen.breakEven,status,referralRate:referralRate*100,fbaFee,closingFee,fbmShip,extraFees,fba,fbm,fulfillment};
 }
-['price','fees','cost','shipping','other','referralRate','fbaFee','closingFee','fbmShip'].forEach(id=>$(id).addEventListener('input',calc));['eligibility','fba','fulfillment'].forEach(id=>$(id).addEventListener('change',calc)).forEach(id=>$(id).addEventListener('input',calc));['eligibility','fba','fulfillment'].forEach(id=>$(id).addEventListener('change',calc));
+['price','fees','cost','shipping','other','referralRate','fbaFee','closingFee','fbmShip'].forEach(id=>$(id).addEventListener('input',calc));['eligibility','fba','fulfillment'].forEach(id=>$(id).addEventListener('change',calc));
 function selectedBook(b){$('title').value=b.title||''}
 function amazonUrl(query){return 'https://www.amazon.com/s?k='+encodeURIComponent(query)+'&i=stripbooks'}
 function currentBookQuery(){return [$('title').value.trim(),$('author').value.trim(),$('isbn').value.trim()].filter(Boolean).join(' ')}
