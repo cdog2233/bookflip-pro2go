@@ -298,14 +298,56 @@ test("actual purchase and sale records preserve user-entered costs", () => {
   assert.equal(saleSaves, 1);
 });
 
+test("blank manual purchase cost is rejected instead of silently recording a zero-cost book", () => {
+  const handler = section("window.markPurchased=", "window.removeRecord=");
+  const records = [{ id: "book-1", cost: 4.5 }];
+  let saved = 0, alerts = 0;
+  const mark = new Function("records", "persist", "window", "prompt", "alert", handler + "return window.markPurchased;")(
+    records, () => saved++, {}, () => "", () => alerts++
+  );
+  mark("book-1");
+  assert.equal(records[0].purchased, undefined);
+  assert.equal(records[0].actualPurchaseCost, undefined);
+  assert.equal(saved, 0);
+  assert.equal(alerts, 1);
+});
+
+test("only an actual recorded sale can move a book into Sold", () => {
+  const handler = section("window.setStage=", "window.markPurchased=");
+  const records = [{ id: "book-1", cost: 4.5, actualPurchaseCost: 4.5, purchased: true, stage: "LISTED" }];
+  const elements = { saleStatus: { textContent: "" } };
+  let saved = 0, rendered = 0;
+  const setStage = new Function("records", "$", "persist", "prompt", "alert", "window", "render", handler + "return window.setStage;")(
+    records, id => elements[id], () => saved++, () => "4.5", () => {}, {}, () => rendered++
+  );
+  setStage("book-1", "SOLD");
+  assert.equal(records[0].stage, "LISTED");
+  assert.equal(saved, 0);
+  assert.match(elements.saleStatus.textContent, /actual sale/);
+  assert.equal(rendered, 1);
+
+  const stageOf = new Function(section("function stageOf", "function stageClass") + "return stageOf;")();
+  assert.equal(stageOf({ stage: "SOLD", purchased: true }), "PURCHASED");
+  assert.equal(stageOf({ stage: "SOLD" }), "RESEARCH");
+  assert.equal(stageOf({ stage: "LISTED", sale: { price: 10 } }), "SOLD");
+  assert.match(html, /value="SOLD" \$\{r\.sale\?'':'disabled'\}/);
+});
+
+test("review queue surfaces Amazon ISBN, condition, and eligibility guardrails", () => {
+  assert.match(html, /match the exact ISBN, edition and binding/);
+  assert.match(html, /moldy or unclean copies/);
+  assert.match(html, /advance reading copies and uncorrected proofs/);
+  assert.match(html, /Condition guidelines/);
+});
+
 test("workflow dropdown captures the actual purchase cost before marking a book purchased or listed", () => {
   const handler = section("window.setStage=", "window.markPurchased=");
   const records = [{ id: "book-1", cost: 4.5 }];
   const elements = { saleStatus: { textContent: "" } };
   let saved = 0;
   const prompts = [];
-  const fn = new Function("records", "$", "persist", "prompt", "alert", handler + "return window.setStage;")(
-    records, id => elements[id], () => saved++, message => { prompts.push(message); return "3.25"; }, () => {}
+  const fn = new Function("records", "$", "persist", "prompt", "alert", "window", "render", handler + "return window.setStage;")(
+    records, id => elements[id], () => saved++, message => { prompts.push(message); return "3.25"; }, () => {}, {}, () => {}
   );
   fn("book-1", "LISTED");
   assert.equal(records[0].actualPurchaseCost, 3.25);
@@ -320,8 +362,8 @@ test("workflow dropdown cancellation and invalid purchase amounts do not change 
   for (const answer of [null, "", "-2", "not-money"]) {
     const records = [{ id: "book-1", cost: 4.5, stage: "RESEARCH" }];
     let saved = 0, alerts = 0;
-    const fn = new Function("records", "$", "persist", "prompt", "alert", handler + "return window.setStage;")(
-      records, () => ({ textContent: "" }), () => saved++, () => answer, () => alerts++
+    const fn = new Function("records", "$", "persist", "prompt", "alert", "window", "render", handler + "return window.setStage;")(
+      records, () => ({ textContent: "" }), () => saved++, () => answer, () => alerts++, {}, () => {}
     );
     fn("book-1", "PURCHASED");
     assert.equal(records[0].stage, "RESEARCH");
