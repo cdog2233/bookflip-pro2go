@@ -49,6 +49,21 @@ Configure Cloudflare Access to protect the deployed Worker hostname and route. T
 
 Create a Cloudflare rate-limiting rule for the API route (for example, a conservative per-IP limit) and verify the Access policy before sharing the endpoint. CORS is not authentication; the Worker independently verifies the Access JWT.
 
+## Deploy from GitHub Actions (phone-friendly)
+
+After creating the Cloudflare Worker and Access application, add these repository settings under GitHub **Settings → Secrets and variables → Actions**:
+
+**Repository secrets**
+- `CLOUDFLARE_API_TOKEN`: a Cloudflare API token scoped to the target account with permission to edit Workers Scripts.
+- `CLOUDFLARE_ACCOUNT_ID`: the target Cloudflare account ID.
+- `KEEPA_API_KEY` (optional until you have a Keepa subscription): the Keepa API key. The workflow sends it directly to Wrangler as an encrypted Worker secret; it is never written into the repository.
+
+**Repository variables**
+- `CF_ACCESS_TEAM_DOMAIN`: your Cloudflare Access team domain, such as `your-team.cloudflareaccess.com`.
+- `CF_ACCESS_AUD`: the Access application's audience tag.
+
+Then open **Actions → Deploy Keepa Worker → Run workflow**. The workflow is manual-only; ordinary app pushes do not attempt a Worker deployment. If the optional Keepa key is absent, the Worker can deploy but will return a clear 503 until the encrypted Worker secret is added. Configure the Access application and rate limit described above before allowing requests.
+
 ## Request contract
 
 ```http
