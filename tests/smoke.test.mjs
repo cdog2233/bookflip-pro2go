@@ -596,3 +596,24 @@ test("Book Scout can analyze Keepa JSON directly without saving the book or usin
   assert.match(appScript,/let scoutKeepaSignal=null/);
   assert.match(appScript,/const directSignal=scoutKeepaSignal/);
 });
+
+test("Photo Scanner keeps valid ISBNs but filters barcode noise and unrelated numeric OCR",()=>{
+ const scanner=new Function(section("function findISBNInText","$('scanBookPhotos').onclick"),"return {findISBNInText,cleanBookOCR,makeBookPrompt};")();
+ const raw="THE GREAT GATSBY\nF. SCOTT FITZGERALD\nISBN 978-0-306-40615-7\n9780306406157 12345678901234567890\nCopyright 2020\nRandom barcode 1234567890123456";
+ assert.equal(scanner.findISBNInText(raw),"9780306406157");
+ const notes=scanner.cleanBookOCR(raw);
+ assert.match(notes,/ISBN: 9780306406157/);
+ assert.match(notes,/THE GREAT GATSBY/);
+ assert.match(notes,/F. SCOTT FITZGERALD/);
+ assert.match(notes,/Copyright 2020/);
+ assert.doesNotMatch(notes,/12345678901234567890/);
+ assert.doesNotMatch(notes,/Random barcode/);
+});
+test("Photo Scanner exposes a manual ISBN re-detection action and applies the validated ISBN",()=>{
+ assert.match(html,/id="findOcrISBN"/);
+ assert.match(html,/id="useOcrISBN"/);
+ assert.match(appScript,/\$\('findOcrISBN'\)\.onclick/);
+ assert.match(appScript,/findISBNInText\(\$\('aiOcrText'\)\.value\)/);
+ assert.match(appScript,/\$\('isbn'\)\.value=aiDetectedISBN/);
+ assert.match(appScript,/cleanBookOCR\(rawExtracted\)/);
+});
