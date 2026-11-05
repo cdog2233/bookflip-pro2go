@@ -1,0 +1,10 @@
+name = "bookflip-keepa-proxy"
+main = "worker.js"
+compatibility_date = "2026-11-04"
+workers_dev = true
+
+[vars]
+ALLOWED_ORIGIN = "https://cdog2233.github.io"
+
+[secrets]
+required = ["KEEPA_API_KEY"]
