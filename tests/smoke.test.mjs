@@ -250,6 +250,46 @@ test("FBA and FBM calculator scenarios use their separate fulfillment costs", ()
   assert.equal(calc().status, "BUY");
 });
 
+test("missing or invalid Amazon and fulfillment fees cannot produce a BUY recommendation", () => {
+  const source = section("function calc(){", "['price','fees','cost'");
+  const elements = {
+    price: { value: "30" }, cost: { value: "5" }, shipping: { value: "1" }, other: { value: "1" },
+    fees: { value: "" }, referralRate: { value: "15" }, fbaFee: { value: "" }, closingFee: { value: "1.80" },
+    fbmShip: { value: "5" }, fulfillment: { value: "FBA" }, eligibility: { value: "yes" }, fba: { value: "yes" },
+    net: {}, roi: {}, margin: {}, maxBuy: {}, breakEven: {}, fbaCompare: {}, fbmCompare: {},
+    fbaFeesTotal: {}, fbmFeesTotal: {}, fbaMaxBuy: {}, fbmMaxBuy: {}, decision: {}
+  };
+  const $ = id => elements[id];
+  const val = id => Number(elements[id].value) || 0;
+  const money = value => "$" + Number(value).toFixed(2);
+  const settings = { minProfit: 7, minRoi: 50 };
+  const calc = new Function("val", "$", "money", "settings", source + "return calc;")(val, $, money, settings);
+
+  let result = calc();
+  assert.equal(result.status, "REVIEW");
+  assert.match(elements.decision.innerHTML, /Enter the current FBA fulfillment fee/);
+  assert.equal(elements.net.value, "Enter required fees");
+  assert.equal(elements.fbaFeesTotal.textContent, "Enter the current FBA fulfillment fee");
+  assert.equal(elements.fbaMaxBuy.textContent, "—");
+
+  elements.fbaFee.value = "4";
+  elements.fulfillment.value = "FBM";
+  elements.fbmShip.value = "";
+  result = calc();
+  assert.equal(result.status, "REVIEW");
+  assert.match(elements.decision.innerHTML, /Enter FBM postage \+ packaging/);
+  assert.equal(elements.fbmFeesTotal.textContent, "Enter FBM postage + packaging");
+
+  elements.fbmShip.value = "5";
+  result = calc();
+  assert.equal(result.status, "BUY");
+
+  elements.referralRate.value = "";
+  result = calc();
+  assert.equal(result.status, "REVIEW");
+  assert.match(elements.decision.innerHTML, /Enter a valid Amazon Books referral fee/);
+});
+
 test("Amazon Books fee defaults match the current US fee schedule", () => {
   assert.match(html, /id="referralRate"[^>]*value="15"/);
   assert.match(html, /id="closingFee"[^>]*value="1\.80"/);
