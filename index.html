@@ -549,11 +549,11 @@ $('aiPhotoInput').addEventListener('change',async event=>{
 $('clearAIPhotos').onclick=()=>{aiPhotos=[];renderAIPhotos();$('aiStatus').textContent='Photos removed from this page.'};
 $('clearAIResults').onclick=()=>{aiDetectedISBN='';$('aiOcrText').value='';$('aiPromptOutput').value='';$('aiOcrResults').replaceChildren();$('aiOcrResults').style.display='none';$('useOcrISBN').disabled=true;$('aiStatus').textContent='Scan results cleared.'};
 function findISBNInText(value){
- const source=String(value||''),candidates=[];
- const labelled=source.match(/(?:ISBN(?:-1[03])?\s*[:#]?\s*)([0-9Xx][0-9Xx\s-]{7,22})/gi)||[];
- for(const item of labelled)candidates.push(item.replace(/^.*?ISBN(?:-1[03])?\s*[:#]?\s*/i,''));
- const broad=source.match(/(?:97[89][\s-]*[0-9][0-9\s-]{8,18}[0-9]|[0-9][0-9\s-]{7,17}[0-9Xx])/g)||[];
- candidates.push(...broad);
+ const lines=String(value||'').split(/\r?\n/),candidates=[];
+ for(const line of lines){
+  const found=line.match(/(?:97[89](?:[\s-]?\d){10}|(?:\d[\s-]?){9}[0-9Xx])/gi)||[];
+  candidates.push(...found);
+ }
  for(const candidate of candidates){const cleaned=isbnClean(candidate);if(isbnValid(cleaned))return cleaned}
  return '';
 }
