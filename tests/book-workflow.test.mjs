@@ -34,7 +34,7 @@ test("camera scanner keeps ISBN barcode formats, rear camera, validation and opt
 test("ISBN metadata lookup validates input and falls back from Google Books to Open Library",async()=>{
   const handler=section("$('lookupBtn').onclick=","$('amazonTitleBtn').onclick=");
   const fields=fieldsOf({
-    isbn:"978-0-306-40615-7",title:"",author:"",
+    isbn:"978-0-306-40615-7",title:"",author:"",lookupBtn:{},
     lookupStatus:{textContent:""},matches:{innerHTML:""},
     amazonSearch:{href:"",style:{display:"none"}}
   });
@@ -64,7 +64,7 @@ test("ISBN metadata lookup validates input and falls back from Google Books to O
 
 test("Amazon search remains scoped to Books and safely encodes title and author",()=>{
   const block=section("function amazonUrl(query)","async function googleBooks");
-  const fields=fieldsOf({title:"A Good Girl's Guide to Murder",author:"Holly Jackson",isbn:""});
+  const fields=fieldsOf({title:"A Good Girl's Guide to Murder",author:"Holly Jackson",isbn:"",amazonSearch:{href:"",style:{}}});
   const $=id=>fields[id];
   const f=new Function("$",block+";return {amazonUrl,currentBookQuery,showAmazon};")($);
   const query=f.currentBookQuery();
@@ -120,10 +120,10 @@ test("editing a purchased book preserves actual acquisition costs, purchase date
   const calc=()=>({price:30,fees:5,referralRate:15,fbaFee:4,closingFee:1.8,fbmShip:3.5,extraFees:0.5,
     cost:15.25,ship:1,other:1,net:3,roi:10,max:8,breakEven:25,status:"REVIEW",fba:{net:3},fbm:{net:4}});
   let saves=0;
-  const factory=new Function("$","records","calc","isbnClean","isbnValid","stageOf","persist","alert","showTab",
+  const factory=new Function("$","records","calc","isbnClean","isbnValid","stageOf","persist","alert","showTab","editingRecordId",
     handler+";return {click:$('saveBtn').onclick,getRecords:()=>records};");
   const api=factory($,[old],calc,v=>String(v).replace(/[^0-9Xx]/g,"").toUpperCase(),v=>v==="9780306406157",
-    r=>r.stage,()=>saves++,()=>{},()=>{});
+    r=>r.stage,()=>saves++,()=>{},()=>"review","book-1");
   api.click();
   const saved=api.getRecords()[0];
   assert.equal(saved.title,"Edited title");
@@ -179,7 +179,7 @@ test("actual purchase receipt and sale workflow use confirmed costs, never estim
   assert.ok(records[0].purchasedAt);
 
   const sale=section("$('recordSale').onclick=","$('saveSettings').onclick=");
-  const fields=fieldsOf({saleBook:"book-1",salePrice:"40",saleFees:"6",saleCosts:"3",saleStatus:{textContent:""}});
+  const fields=fieldsOf({recordSale:{},saleBook:"book-1",salePrice:"40",saleFees:"6",saleCosts:"3",saleStatus:{textContent:""}});
   const $=id=>fields[id];
   const sell=new Function("$","records","persist","Date",sale+";return $('recordSale').onclick;")($,records,()=>saves++,Date);
   sell();
