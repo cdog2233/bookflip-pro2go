@@ -283,7 +283,7 @@ test("actual purchase and sale records preserve user-entered costs", () => {
   assert.equal(purchaseSaves, 1);
 
   const saleHandler = section("$('recordSale').onclick=", "$('saveSettings').onclick");
-  const saleRecords = [{ id: "book-1", actualPurchaseCost: 6.75, shipping: 1, other: 1 }];
+  const saleRecords = [{ id: "book-1", purchased: true, actualPurchaseCost: 6.75, shipping: 1, other: 1 }];
   const elements = {
     recordSale: {}, saleBook: { value: "book-1" }, salePrice: { value: "30" },
     saleFees: { value: "5" }, saleCosts: { value: "2" }, saleStatus: { textContent: "" }
@@ -296,6 +296,62 @@ test("actual purchase and sale records preserve user-entered costs", () => {
   assert.equal(saleRecords[0].sale.profit, 14.25);
   assert.equal(saleRecords[0].stage, "SOLD");
   assert.equal(saleSaves, 1);
+});
+
+test("workflow dropdown captures the actual purchase cost before marking a book purchased or listed", () => {
+  const handler = section("window.setStage=", "window.markPurchased=");
+  const records = [{ id: "book-1", cost: 4.5 }];
+  const elements = { saleStatus: { textContent: "" } };
+  let saved = 0;
+  const prompts = [];
+  const fn = new Function("records", "$", "persist", "prompt", "alert", handler + "return window.setStage;")(
+    records, id => elements[id], () => saved++, message => { prompts.push(message); return "3.25"; }, () => {}
+  );
+  fn("book-1", "LISTED");
+  assert.equal(records[0].actualPurchaseCost, 3.25);
+  assert.equal(records[0].purchased, true);
+  assert.equal(records[0].stage, "LISTED");
+  assert.equal(saved, 1);
+  assert.equal(prompts.length, 1);
+});
+
+test("workflow dropdown cancellation and invalid purchase amounts do not change inventory", () => {
+  const handler = section("window.setStage=", "window.markPurchased=");
+  for (const answer of [null, "", "-2", "not-money"]) {
+    const records = [{ id: "book-1", cost: 4.5, stage: "RESEARCH" }];
+    let saved = 0, alerts = 0;
+    const fn = new Function("records", "$", "persist", "prompt", "alert", handler + "return window.setStage;")(
+      records, () => ({ textContent: "" }), () => saved++, () => answer, () => alerts++
+    );
+    fn("book-1", "PURCHASED");
+    assert.equal(records[0].stage, "RESEARCH");
+    assert.equal(records[0].purchased, undefined);
+    assert.equal(saved, 0);
+    if (answer !== null) assert.equal(alerts, 1);
+  }
+});
+
+test("actual sale rejects negative costs and duplicate sale entries", () => {
+  const handler = section("$('recordSale').onclick=", "$('saveSettings').onclick");
+  const records = [{ id: "book-1", purchased: true, actualPurchaseCost: 5 }];
+  const elements = {
+    recordSale: {}, saleBook: { value: "book-1" }, salePrice: { value: "20" },
+    saleFees: { value: "-1" }, saleCosts: { value: "0" }, saleStatus: { textContent: "" }
+  };
+  let saved = 0;
+  new Function("$", "records", "persist", handler)(
+    id => elements[id], records, () => saved++
+  );
+  elements.recordSale.onclick();
+  assert.equal(records[0].sale, undefined);
+  assert.equal(saved, 0);
+  assert.match(elements.saleStatus.textContent, /non-negative/);
+
+  records[0].sale = { price: 20, profit: 10 };
+  elements.saleFees.value = "1";
+  elements.recordSale.onclick();
+  assert.equal(saved, 0);
+  assert.match(elements.saleStatus.textContent, /already recorded/);
 });
 
 test("responsive layout, scanner, flashlight, metadata lookup, and backup controls remain present", () => {
