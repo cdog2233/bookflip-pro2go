@@ -25,10 +25,11 @@ const offerParser = section("function parseKeepaOfferSnapshot", "function render
 const offerPanel = section("function renderKeepaOfferPanel", "window.exportKeepaOffers=");
 const csvParser = section("function parseHistoryCSV", "$('importHistory').onclick");
 const keepaParser = section("function parseKeepaProductJSON", "$('importKeepaJson').onclick");
+const salesSignalParser = section("function extractKeepaLastSalesSignal", "function scoutNormalizeMatch");
 
 const helpers = new Function("historyLocalDate", "historyEsc", "money", [
-  localDate, escape, chart, trend, offerParser, offerPanel, csvParser, keepaParser,
-  "return { historyLocalDate, historyChart, historyTrend, parseHistoryCSV, parseKeepaProductJSON, parseKeepaOfferSnapshot, renderKeepaOfferPanel };"
+  localDate, escape, chart, trend, offerParser, offerPanel, csvParser, keepaParser, salesSignalParser,
+  "return { historyLocalDate, historyChart, historyTrend, parseHistoryCSV, parseKeepaProductJSON, parseKeepaOfferSnapshot, renderKeepaOfferPanel, extractKeepaLastSalesSignal };"
 ].join("\n"))(
   undefined,
   value => String(value ?? "").replace(/[&<>"]/g, ""),
@@ -554,4 +555,31 @@ test("Keepa API imports require explicit Amazon.com domain IDs for both history 
 test("browser app never contains or stores a shared Keepa API key", () => {
   assert.doesNotMatch(appScript,/KEEPA_API_KEY|api\.keepa\.com/);
   assert.match(html,/Official Keepa Product Object format/);
+});
+test("Book Scout shows last estimated Amazon sale activity only for exact saved title, author, edition and ASIN",()=>{
+  for(const id of ["lastSaleCard","lastSaleResult","checkLastSaleBtn","openLastSaleHistoryBtn"])assert.match(html,new RegExp('id="'+id+'"'));
+  assert.match(html,/Most recent estimated sale activity/);
+  assert.match(appScript,/function renderScoutLastSale\\(/);
+  assert.match(appScript,/lastSalesSignal:old\\?\\(old\\.lastSalesSignal\\|\\|null\\):null/);
+  assert.match(appScript,/r\\.lastSalesSignal=lastSalesSignal/);
+  assert.match(html,/not Amazon.s actual order timestamp/i);
+});
+
+test("Keepa sales-rank history extracts the most recent rank drop timestamp for the matching Amazon ASIN",()=>{
+  const fn=helpers.extractKeepaLastSalesSignal;
+  const data={products:[{asin:"B000000000",domainId:1,csv:[[],[],[],[100000,120000,100100,80000,100200,90000,100300,45000]]}]};
+  const result=fn(data,"B000000000");
+  assert.equal(result.detected,true);
+  assert.equal(result.rank,45000);
+  assert.equal(result.previousRank,90000);
+  assert.equal(result.dropPercent,50);
+  assert.equal(result.timestamp,new Date((100300+21564000)*60000).toISOString());
+  assert.throws(()=>fn(data,"B000000001"),/No matching/);
+  assert.throws(()=>fn({products:[{asin:"B000000000",domainId:2,csv:[[],[],[],[100000,50000]]}]},"B000000000"),/domainId 1/);
+});
+
+test("Keepa sales-rank helper reports no signal instead of inventing a sale",()=>{
+  const result=helpers.extractKeepaLastSalesSignal({products:[{asin:"B000000000",domainId:1,csv:[[],[],[],[100000,50000,100100,60000]]}]},"B000000000");
+  assert.equal(result.detected,false);
+  assert.match(result.reason,/No downward sales-rank movement/);
 });
