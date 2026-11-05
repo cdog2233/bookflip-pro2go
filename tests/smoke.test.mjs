@@ -22,7 +22,7 @@ const escape = section("function historyEsc", "function refreshHistoryBooks");
 const chart = section("function historyChart", "function historyTrend");
 const trend = section("function historyTrend", "function parseKeepaOfferSnapshot");
 const offerParser = section("function parseKeepaOfferSnapshot", "function renderKeepaOfferPanel");
-const offerPanel = section("function renderKeepaOfferPanel", "function renderHistory");
+const offerPanel = section("function renderKeepaOfferPanel", "window.exportKeepaOffers=");
 const csvParser = section("function parseHistoryCSV", "$('importHistory').onclick");
 const keepaParser = section("function parseKeepaProductJSON", "$('importKeepaJson').onclick");
 
