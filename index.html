@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#101827"><title>BookFlip Pro2Go · Seller Workspace</title><script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<meta name="theme-color" content="#101827"><title>BookFlip Pro2Go · Seller Workspace</title><script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 :root{--bg:#f4f6fa;--panel:#fff;--ink:#172033;--muted:#687386;--line:#e5e9f0;--navy:#101827;--blue:#315eea;--blue2:#edf2ff;--green:#13845b;--red:#c34b4b;--amber:#a96c12;--shadow:0 8px 26px rgba(19,34,58,.06)}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -76,7 +76,7 @@ body[data-card-style="elevated"] .card,body[data-card-style="elevated"] .metric{
 <main>
 <div class="topline"><div><div class="eyebrow">Your Amazon book business</div><h1>Scout smarter. Buy with confidence.</h1><div class="sub">A sourcing workspace built around the books you find, the numbers that matter, and the decisions you control.</div></div><span class="pill">BOOKFLIP 3.0 · RESEARCH MODE</span></div>
 <nav class="tabs" aria-label="Main navigation">
-<button class="tab active" data-tab="dashboard">Dashboard</button><button class="tab" data-tab="research">Book Scout</button><button class="tab" data-tab="photoai">AI Photo Assistant</button><button class="tab" data-tab="review">Review Queue</button><button class="tab" data-tab="inventory">Inventory</button><button class="tab" data-tab="keepa">Research History</button><button class="tab" data-tab="settings">Settings</button>
+<button class="tab active" data-tab="dashboard">Dashboard</button><button class="tab" data-tab="research">Book Scout</button><button class="tab" data-tab="photoai">Photo Scanner</button><button class="tab" data-tab="review">Review Queue</button><button class="tab" data-tab="inventory">Inventory</button><button class="tab" data-tab="keepa">Research History</button><button class="tab" data-tab="settings">Settings</button>
 </nav>
 <section class="view active" id="dashboard">
 <div class="grid"><div class="metric"><label>Books in your pipeline</label><strong id="mBooks">0</strong><small>Every saved research record</small></div><div class="metric"><label>Capital invested</label><strong id="mInvested">$0.00</strong><small>Purchase price + actual or estimated inbound costs</small></div><div class="metric"><label>Realized profit</label><strong id="mProfit">$0.00</strong><small>Legacy sales may use estimated inbound costs</small></div></div>
@@ -127,20 +127,21 @@ body[data-card-style="elevated"] .card,body[data-card-style="elevated"] .metric{
 </section>
 <section class="view" id="photoai">
 <div class="card">
- <div class="eyebrow">Camera-powered book research</div>
- <h2 style="margin-top:5px">AI Book Photo Assistant</h2>
- <p>Take up to four photos of a book. The assistant can read the cover, barcode and copyright page, then answer sourcing questions. For the best edition match, include the front cover and ISBN/copyright page.</p>
- <div class="notice">Photos are resized in your browser and sent to your configured private AI service only when you press Analyze / Ask. They are not saved in BookFlip inventory or browser storage. AI findings are suggestions—verify the exact ISBN, Amazon listing, eligibility, condition and live numbers before buying.</div>
- <div class="field"><label for="aiEndpoint">Private AI service endpoint</label><input id="aiEndpoint" type="url" inputmode="url" placeholder="https://your-worker.workers.dev" autocomplete="url"><div class="muted">Your secure Cloudflare Worker URL. The OpenAI API key stays on the server, never in this app.</div></div>
- <div class="row"><button class="btn secondary small" id="saveAIEndpoint" type="button">Save service address</button><span class="muted" id="aiEndpointStatus" aria-live="polite">AI service not connected yet.</span></div>
- <div class="field" style="margin-top:17px"><label for="aiPhotoInput">Book photos · front, back, spine, ISBN/copyright page</label><input id="aiPhotoInput" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" multiple><div class="muted">Up to 4 photos. Use clear, well-lit pictures. ISBN and small print are easiest to read up close.</div></div>
+ <div class="eyebrow">Free · on-device photo reading</div>
+ <h2 style="margin-top:5px">Book Photo Scanner</h2>
+ <p>Take up to four photos of a book. BookFlip reads visible text on your device, looks for a valid ISBN, and can search free book catalogs. No paid AI service or API key is required.</p>
+ <div class="notice">Your photos are processed in this browser and are not uploaded to BookFlip or saved in your inventory. The first scan may download the free OCR language model. For best results, photograph the front cover and the ISBN/barcode or copyright page in bright, even light.</div>
+ <div class="field"><label for="aiPhotoInput">Book photos · front, back, spine, ISBN/copyright page</label><input id="aiPhotoInput" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" multiple><div class="muted">Up to 4 photos. JPEG, PNG or WebP. Keep the ISBN close and in focus.</div></div>
  <div id="aiPhotoPreview" class="ai-photo-grid"></div>
- <div class="row" style="margin:8px 0 15px"><button class="btn secondary small" id="clearAIPhotos" type="button">Remove photos</button><button class="btn secondary small" id="clearAIChat" type="button">New conversation</button></div>
- <div id="aiChat" class="ai-chat" aria-live="polite"><div class="ai-empty">Your book assistant is ready. Add a photo and ask something like “Identify this exact edition and tell me what I should verify before buying it.”</div></div>
- <div class="field"><label for="aiQuestion">Ask about this book</label><textarea id="aiQuestion" rows="3" placeholder="Identify this book and edition. Read the ISBN if visible, point out edition clues, and tell me what to verify for Amazon resale."></textarea></div>
- <div class="row"><button class="btn" id="askBookAI" type="button">Analyze photos / Ask AI</button><span id="aiStatus" class="muted" role="status">Add photos to begin.</span></div>
+ <div class="row" style="margin:8px 0 15px"><button class="btn secondary small" id="clearAIPhotos" type="button">Remove photos</button><button class="btn secondary small" id="clearAIResults" type="button">Clear results</button></div>
+ <div class="row"><button class="btn" id="scanBookPhotos" type="button">Read photos & find ISBN</button><span id="aiStatus" class="muted" role="status">Add photos to begin.</span></div>
+ <div id="aiOcrResults" class="result" style="display:none;margin-top:14px"></div>
+ <div class="field" style="margin-top:14px"><label for="aiOcrText">Text read from your photos (you can correct it)</label><textarea id="aiOcrText" rows="7" placeholder="Detected cover text and ISBN details will appear here. You can edit the text before asking ChatGPT." ></textarea></div>
+ <div class="row"><button class="btn secondary" id="useOcrISBN" type="button" disabled>Use detected ISBN in Book Scout</button><button class="btn" id="askChatGPT" type="button">Copy notes & open ChatGPT</button></div>
+ <div class="notice" style="margin-top:12px">Free AI option: ChatGPT can help interpret the actual photos using your available ChatGPT usage. Tap the button above, then attach the same book photos in ChatGPT. BookFlip copies the OCR notes and a ready-made sourcing prompt; it does not automatically transfer your photos or bypass ChatGPT usage limits.</div>
+ <div class="field"><label for="aiPromptOutput">Prompt and scan notes (copy manually if needed)</label><textarea id="aiPromptOutput" rows="5" readonly placeholder="Your prompt will appear here after scanning."></textarea></div>
 </div>
-<div class="notice warn">Important: AI cannot confirm live Amazon prices, sales rank, seller eligibility or demand from a cover photo. Use Book Scout and Research History to verify those separately.</div>
+<div class="notice warn">A photo or catalog match cannot confirm the exact Amazon ASIN, live price, sales rank, seller eligibility or profit. Verify the binding and edition against the physical book and the Amazon listing before buying.</div>
 </section>
 <section class="view" id="review"><div class="card"><div class="eyebrow">Decision workspace</div><h2 style="margin-top:5px">Review before you spend</h2><p>Every saved book starts here. Confirm the edition, match the Amazon listing, check selling eligibility and verify the numbers. A green recommendation is never a substitute for these checks.</p><div class="inventory-tools" style="grid-template-columns:1fr 1fr"><select id="reviewFilter" aria-label="Filter review queue"><option value="OPEN">Needs review</option><option value="READY">Ready to buy</option><option value="ALL">All saved books</option></select><select id="reviewSort" aria-label="Sort review queue"><option value="NEWEST">Newest first</option><option value="PROFIT">Highest estimated profit</option></select></div><div id="reviewSummary" class="inventory-summary"></div><div id="reviewList"><div class="empty">No saved books to review yet. Save a book from Book Scout first.</div></div></div><div class="notice warn">Eligibility must be checked inside your own Amazon Seller Central account. FBA restrictions do not automatically mean a book cannot be sold merchant-fulfilled.</div><div class="notice">Amazon book guardrails: match the exact ISBN, edition and binding. Do not source moldy or unclean copies, books with missing pages or unreadable text, or promotional / advance reading copies and uncorrected proofs. Some products need approval even when Books generally allows Used; confirm the exact ASIN in your own Seller Central account before buying. <a href="https://sell.amazon.com/blog/amazon-condition-guidelines" target="_blank" rel="noopener">Condition guidelines</a> · <a href="https://sell.amazon.com/learn/how-to-sell-books/" target="_blank" rel="noopener">Book selling guide</a>.</div></section>
 <section class="view" id="inventory">
@@ -398,9 +399,8 @@ $('importKeepaJson').onclick=async()=>{const r=historyBook(),file=$('keepaJson')
 $('exportHistory').onclick=()=>{const r=historyBook();if(!r){$('snapshotStatus').textContent='Select a saved book first.';return}const cols=['date','used_price','sales_rank','used_offers','source'],rows=(r.history||[]).map(p=>[p.date,p.price??'',p.rank??'',p.offers??'',p.source||''].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(','));download('BookFlip_history_'+(r.asin||r.isbn||'book')+'.csv',[cols.join(','),...rows].join('\n'),'text/csv')};
 
 
-// AI Book Photo Assistant — photos and conversation remain in memory only.
-const AI_ENDPOINT_KEY='bookflip_pro2go_ai_endpoint';
-let aiPhotos=[],aiMessages=[],aiBusy=false;
+// Free Book Photo Scanner — OCR runs locally; no photo API or paid key.
+let aiPhotos=[],aiDetectedISBN='';
 function renderAIPhotos(){
  const host=$('aiPhotoPreview');host.replaceChildren();
  aiPhotos.forEach((photo,index)=>{
@@ -410,83 +410,72 @@ function renderAIPhotos(){
   card.append(img,label);host.append(card);
  });
  $('clearAIPhotos').disabled=!aiPhotos.length;
-}
-function renderAIChat(){
- const host=$('aiChat');host.replaceChildren();
- if(!aiMessages.length){const empty=document.createElement('div');empty.className='ai-empty';empty.textContent='Your book assistant is ready. Add a photo and ask a sourcing question.';host.append(empty);return}
- aiMessages.forEach(message=>{
-  const bubble=document.createElement('div');bubble.className='ai-message '+message.role;bubble.textContent=message.content;host.append(bubble);
-  if(message.role==='assistant'){
-   const matches=message.content.match(/(?:ISBN(?:-1[03])?\s*[:#]?\s*)?((?:97[89][\s-]?)?\d[\d\s-]{8,15}[\dXx])/ig)||[];
-   const found=matches.map(value=>isbnClean(value)).find(value=>isbnValid(value));
-   if(found){const button=document.createElement('button');button.type='button';button.className='btn secondary small';button.textContent='Use ISBN '+found+' in Book Scout';button.onclick=()=>{ $('isbn').value=found;showTab('research');$('lookupStatus').textContent='ISBN copied from the AI response. Confirm it matches the physical copy, then find book details.';$('lookupBtn').click()};bubble.append(button)}
-  }
- });
- host.scrollTop=host.scrollHeight;
+ $('scanBookPhotos').disabled=!aiPhotos.length;
 }
 function compressAIPhoto(file){
  return new Promise((resolve,reject)=>{
   if(!file||!/^image\/(jpeg|png|webp)$/.test(file.type)){reject(new Error('Choose a JPEG, PNG or WebP photo.'));return}
   if(file.size>12*1024*1024){reject(new Error('Each original photo must be 12 MB or smaller.'));return}
-  const reader=new FileReader();
-  reader.onerror=()=>reject(new Error('Could not read that photo.'));
-  reader.onload=()=>{
-   const image=new Image();
-   image.onerror=()=>reject(new Error('That image could not be opened.'));
-   image.onload=()=>{
-    const max=1500,scale=Math.min(1,max/Math.max(image.width,image.height));
-    const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(image.width*scale));canvas.height=Math.max(1,Math.round(image.height*scale));
-    const ctx=canvas.getContext('2d');if(!ctx){reject(new Error('Photo processing is unavailable in this browser.'));return}
-    ctx.drawImage(image,0,0,canvas.width,canvas.height);
-    let data=canvas.toDataURL('image/jpeg',.78);
-    if(data.length>1_200_000)data=canvas.toDataURL('image/jpeg',.62);
-    if(data.length>1_200_000){reject(new Error('Photo is still too large after compression. Try a closer crop.'));return}
-    resolve({name:String(file.name||'book photo').slice(0,80),data});
-   };
+  const reader=new FileReader();reader.onerror=()=>reject(new Error('Could not read that photo.'));
+  reader.onload=()=>{const image=new Image();image.onerror=()=>reject(new Error('That image could not be opened.'));
+   image.onload=()=>{const max=1800,scale=Math.min(1,max/Math.max(image.width,image.height));const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(image.width*scale));canvas.height=Math.max(1,Math.round(image.height*scale));const ctx=canvas.getContext('2d');if(!ctx){reject(new Error('Photo processing is unavailable in this browser.'));return}ctx.drawImage(image,0,0,canvas.width,canvas.height);resolve({name:String(file.name||'book photo').slice(0,80),data:canvas.toDataURL('image/jpeg',.84)});};
    image.src=reader.result;
-  };
-  reader.readAsDataURL(file);
+  };reader.readAsDataURL(file);
  });
 }
-$('aiEndpoint').value=localStorage.getItem(AI_ENDPOINT_KEY)||'';
-$('saveAIEndpoint').onclick=()=>{
- const endpoint=$('aiEndpoint').value.trim().replace(/\/$/,'');
- if(endpoint&&!/^https:\/\//i.test(endpoint)){$('aiEndpointStatus').textContent='Use a secure HTTPS Worker address.';return}
- if(endpoint)localStorage.setItem(AI_ENDPOINT_KEY,endpoint);else localStorage.removeItem(AI_ENDPOINT_KEY);
- $('aiEndpointStatus').textContent=endpoint?'Service address saved on this device.':'Service address cleared.';
-};
 $('aiPhotoInput').addEventListener('change',async event=>{
  const files=Array.from(event.target.files||[]);event.target.value='';
  if(aiPhotos.length+files.length>4){$('aiStatus').textContent='Use up to four photos. Remove one before adding more.';return}
- for(const file of files){
-  try{const photo=await compressAIPhoto(file);aiPhotos.push(photo);renderAIPhotos();$('aiStatus').textContent=aiPhotos.length+' photo(s) ready.'}
-  catch(error){$('aiStatus').textContent=error.message}
- }
+ for(const file of files){try{const photo=await compressAIPhoto(file);aiPhotos.push(photo);renderAIPhotos();$('aiStatus').textContent=aiPhotos.length+' photo(s) ready.'}catch(error){$('aiStatus').textContent=error.message}}
 });
-$('clearAIPhotos').onclick=()=>{aiPhotos=[];renderAIPhotos();$('aiStatus').textContent='Photos removed. They are not stored.'};
-$('clearAIChat').onclick=()=>{aiMessages=[];renderAIChat();$('aiQuestion').value='';$('aiStatus').textContent='New conversation started.'};
-$('askBookAI').onclick=async()=>{
- if(aiBusy)return;
- const endpoint=($('aiEndpoint').value.trim()||localStorage.getItem(AI_ENDPOINT_KEY)||'').replace(/\/$/,'');
- const question=$('aiQuestion').value.trim();
- if(!endpoint){$('aiStatus').textContent='Add your secure AI service address first.';return}
- if(!/^https:\/\//i.test(endpoint)){$('aiStatus').textContent='The AI service address must start with https://';return}
- if(!question){$('aiStatus').textContent='Enter a question first.';return}
- if(!aiPhotos.length&&!aiMessages.length){$('aiStatus').textContent='Add at least one book photo first.';return}
- aiBusy=true;$('askBookAI').disabled=true;$('askBookAI').textContent='Analyzing…';$('aiStatus').textContent='Sending photos securely for analysis…';
- const prior=aiMessages.slice(-8).map(message=>({role:message.role,content:message.content}));
+$('clearAIPhotos').onclick=()=>{aiPhotos=[];renderAIPhotos();$('aiStatus').textContent='Photos removed from this page.'};
+$('clearAIResults').onclick=()=>{aiDetectedISBN='';$('aiOcrText').value='';$('aiPromptOutput').value='';$('aiOcrResults').replaceChildren();$('aiOcrResults').style.display='none';$('useOcrISBN').disabled=true;$('aiStatus').textContent='Scan results cleared.'};
+function findISBNInText(value){
+ const candidates=String(value||'').match(/(?:97[89][\\s-]?)?\\d[\\d\\s-]{8,16}[\\dXx]/g)||[];
+ for(const candidate of candidates){const cleaned=isbnClean(candidate);if(isbnValid(cleaned))return cleaned}
+ return '';
+}
+function makeBookPrompt(){
+ const notes=$('aiOcrText').value.trim();
+ return 'Help me identify and evaluate this physical book for Amazon resale. I will attach photos of the actual book. Use the photos and OCR notes below. Distinguish visible facts from guesses. Do not invent an ISBN, ASIN, edition, price, sales rank, eligibility or profit. Help me confirm the exact binding/edition, identify what details to compare with the Amazon listing, and give me a concise sourcing checklist.\\n\\nOCR notes from BookFlip (may contain recognition errors):\\n'+(notes||'No readable text was extracted.');
+}
+$('scanBookPhotos').onclick=async()=>{
+ if(!aiPhotos.length){$('aiStatus').textContent='Add at least one photo first.';return}
+ if(!window.Tesseract||typeof Tesseract.recognize!=='function'){$('aiStatus').textContent='Free OCR library did not load. Check your internet connection and reload BookFlip.';return}
+ const button=$('scanBookPhotos');button.disabled=true;button.textContent='Reading photos…';
+ let collected=[];
  try{
-  const response=await fetch(endpoint+'/api/book-assistant',{method:'POST',credentials:'include',headers:{'content-type':'application/json'},body:JSON.stringify({question,images:aiPhotos.map(photo=>photo.data),history:prior})});
-  let data={};try{data=await response.json()}catch{}
-  if(!response.ok)throw new Error(data.error||('AI service returned HTTP '+response.status+'.'));
-  if(!data.answer)throw new Error('The AI service returned an empty answer.');
-  aiMessages.push({role:'user',content:question},{role:'assistant',content:String(data.answer)});
-  renderAIChat();$('aiQuestion').value='';$('aiStatus').textContent='Analysis complete. Ask a follow-up or add another photo.';
- }catch(error){
-  $('aiStatus').textContent=error.message==='Failed to fetch'?'Could not reach the AI service. Check the Worker address, Cloudflare Access and iPhone Safari connection.':error.message;
- }finally{aiBusy=false;$('askBookAI').disabled=false;$('askBookAI').textContent='Analyze photos / Ask AI'}
+  for(let i=0;i<aiPhotos.length;i++){
+   $('aiStatus').textContent='Reading photo '+(i+1)+' of '+aiPhotos.length+' on this device…';
+   const result=await Tesseract.recognize(aiPhotos[i].data,'eng',{logger:message=>{if(message.status==='recognizing text')$('aiStatus').textContent='Reading photo '+(i+1)+' of '+aiPhotos.length+' · '+Math.round((message.progress||0)*100)+'%'}});
+   const text=String(result.data&&result.data.text||'').trim();if(text)collected.push('PHOTO '+(i+1)+':\\n'+text);
+  }
+  const extracted=collected.join('\\n\\n');
+  $('aiOcrText').value=extracted;
+  aiDetectedISBN=findISBNInText(extracted);
+  const results=$('aiOcrResults');results.replaceChildren();results.style.display='block';
+  const heading=document.createElement('h3');heading.textContent=aiDetectedISBN?'Valid ISBN detected':'Photo reading complete';results.append(heading);
+  const detail=document.createElement('p');detail.textContent=aiDetectedISBN?'ISBN '+aiDetectedISBN+' passed its checksum. Confirm it matches the physical copy.':'No valid ISBN was confidently read. Try a close, straight-on photo of the barcode or copyright page.';results.append(detail);
+  if(!extracted){const empty=document.createElement('p');empty.textContent='No readable text was found. Try brighter lighting and move closer to the text.';results.append(empty)}
+  $('useOcrISBN').disabled=!aiDetectedISBN;
+  $('aiPromptOutput').value=makeBookPrompt();
+  $('aiStatus').textContent='Done. OCR ran locally; no photo was uploaded.';
+ }catch(error){$('aiStatus').textContent='Photo reading failed: '+(error.message||'Try a clearer photo.')}
+ finally{button.disabled=!aiPhotos.length;button.textContent='Read photos & find ISBN'}
 };
-renderAIPhotos();renderAIChat();
+$('useOcrISBN').onclick=()=>{
+ if(!aiDetectedISBN||!isbnValid(aiDetectedISBN))return;
+ $('isbn').value=aiDetectedISBN;showTab('research');$('lookupStatus').textContent='ISBN read from your photo. Confirm it matches the book, then review the catalog match.';$('lookupBtn').click();
+};
+$('askChatGPT').onclick=async()=>{
+ const prompt=makeBookPrompt();$('aiPromptOutput').value=prompt;
+ const opened=window.open('https://chatgpt.com/','_blank');
+ try{if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(prompt);$('aiStatus').textContent='Prompt copied. In the new ChatGPT tab, paste it and attach your book photos.'}
+ else{$('aiPromptOutput').focus();$('aiPromptOutput').select();$('aiStatus').textContent='Prompt selected below. Copy it, open ChatGPT, and attach your book photos.'}}
+ catch(error){$('aiPromptOutput').focus();$('aiPromptOutput').select();$('aiStatus').textContent='Copy the selected prompt below, then attach your book photos in ChatGPT.'}
+ if(!opened)$('aiStatus').textContent+=' If ChatGPT did not open, visit chatgpt.com in another tab.';
+};
+renderAIPhotos();
 
 function init(){applyAppearance();bindAppearanceControls();if(records.length&&records[0].title===undefined){/* preserve older local records */}records.forEach(r=>{if(!r.reviewChecks)r.reviewChecks={edition:false,amazonMatch:false,eligibility:false,price:false,condition:false,fulfillment:false};if(!r.reviewState)r.reviewState='NEEDS_REVIEW';if(!r.fulfillment)r.fulfillment='FBA'});render();calc();refreshHistoryBooks();$("snapDate").value=historyLocalDate()}
 init();
