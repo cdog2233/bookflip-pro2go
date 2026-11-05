@@ -218,7 +218,7 @@ function calc(){
  let referral=price*referralRate,common=referral+closingFee+extraFees,base=cost+ship+other;
  const scenario=(method)=>{
   let variable=method==='FBA'?fbaFee:fbmShip,fees=common+variable,net=price-fees-base,invest=base+fees,roi=invest>0?net/invest*100:null,margin=price>0?net/price*100:null,targetProfit=Math.max(0,Number(settings.minProfit)||0),targetRoi=Math.max(0,Number(settings.minRoi)||0)/100;
-  let maxProfit=price-fees-ship-other-targetProfit,maxRoi=(price-common)/(1+targetRoi)-variable-ship-other,maxBuy=Math.max(0,Math.floor((Math.min(maxProfit,maxRoi)+1e-9)*100)/100),breakEven=referralRate<1?(base+closingFee+extraFees+variable)/(1-referralRate):null;
+  let maxProfit=price-fees-ship-other-targetProfit,maxRoi=price/(1+targetRoi)-common-variable-ship-other,maxBuy=Math.max(0,Math.floor((Math.min(maxProfit,maxRoi)+1e-9)*100)/100),breakEven=referralRate<1?(base+closingFee+extraFees+variable)/(1-referralRate):null;
   return {method,fees,net,invest,roi,margin,maxBuy,breakEven,variable};
  };
  let fba=scenario('FBA'),fbm=scenario('FBM'),chosen=fulfillment==='FBM'?fbm:fba;
