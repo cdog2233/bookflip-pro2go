@@ -229,10 +229,12 @@ test("FBA and FBM calculator scenarios use their separate fulfillment costs", ()
   const calc = new Function("val", "$", "money", "settings", source + "return calc;")(val, $, money, settings);
   const fba = calc();
   assert.equal(fba.net, 14.5);
+  assert.equal(fba.max, 4.5, "ROI max-buy must subtract all Amazon fees from the investment basis");
   assert.equal(fba.status, "REVIEW");
   elements.fulfillment.value = "FBM";
   const fbm = calc();
   assert.equal(fbm.net, 11.5);
+  assert.equal(fbm.max, 1.5, "FBM max-buy must use postage and all fee costs");
   assert.equal(fbm.status, "REVIEW");
   settings.minRoi = 50;
   assert.equal(calc().status, "BUY");
