@@ -7,5 +7,5 @@ workers_dev = true
 ALLOWED_ORIGIN = "https://cdog2233.github.io"
 OPENAI_MODEL = "gpt-6-astra"
 
-[secrets]
-required = ["KEEPA_API_KEY"]
+# Optional encrypted Worker secrets are uploaded by the deployment workflow:
+# OPENAI_API_KEY enables photo analysis; KEEPA_API_KEY enables Keepa requests.
