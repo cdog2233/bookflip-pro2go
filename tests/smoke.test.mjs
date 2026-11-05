@@ -450,6 +450,6 @@ test("appearance theme selection applies preset colors and custom edits switch t
   const block=section("function bindAppearanceControls()", "function isbnClean");
   assert.match(block, /appearance\.preset='custom'/);
   assert.match(block, /APPEARANCE_THEMES\[preset\]/);
-  assert.match(block, /localStorage\.setItem\(SETKEY,JSON\.stringify\(settings\)\)/);
+  assert.match(block, /saveAppearance\(\)/);
   assert.match(block, /appearance=\{\.\.\.APPEARANCE_DEFAULTS\}/);
 });
