@@ -559,9 +559,9 @@ test("browser app never contains or stores a shared Keepa API key", () => {
 test("Book Scout shows last estimated Amazon sale activity only for exact saved title, author, edition and ASIN",()=>{
   for(const id of ["lastSaleCard","lastSaleResult","checkLastSaleBtn","openLastSaleHistoryBtn"])assert.match(html,new RegExp('id="'+id+'"'));
   assert.match(html,/Most recent estimated sale activity/);
-  assert.match(appScript,/function renderScoutLastSale\\(/);
-  assert.match(appScript,/lastSalesSignal:old\\?\\(old\\.lastSalesSignal\\|\\|null\\):null/);
-  assert.match(appScript,/r\\.lastSalesSignal=lastSalesSignal/);
+  assert.ok(appScript.includes("function renderScoutLastSale("));
+  assert.ok(appScript.includes("lastSalesSignal:old?(old.lastSalesSignal||null):null"));
+  assert.ok(appScript.includes("r.lastSalesSignal=lastSalesSignal"));
   assert.match(html,/not Amazon.s actual order timestamp/i);
 });
 
