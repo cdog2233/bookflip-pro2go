@@ -256,6 +256,19 @@ test("Amazon Books fee defaults match the current US fee schedule", () => {
   assert.match(html, /15% referral \+ \$1\.80 closing fee per item/);
 });
 
+test("clearing the scout form restores Amazon Books fee defaults", () => {
+  const handler = section("$('clearBtn').onclick=", "function stageOf");
+  const ids = ["clearBtn","saveBtn","isbn","title","author","asin","edition","notes","tags","location","price","fees","fbaFee","fbmShip","cost","shipping","other","net","referralRate","closingFee","eligibility","fba","fulfillment","matches","lookupStatus","amazonSearch"];
+  const elements = Object.fromEntries(ids.map(id => [id, { value: "99", textContent: "old", innerHTML: "old", style: {} }]));
+  const $ = id => elements[id];
+  new Function("$", "calc", "editingRecordId", handler)($, () => {}, "old-record");
+  elements.clearBtn.onclick();
+  assert.equal(elements.referralRate.value, "15");
+  assert.equal(elements.closingFee.value, "1.80");
+  assert.equal(elements.eligibility.value, "unknown");
+  assert.equal(elements.fulfillment.value, "FBA");
+});
+
 test("actual purchase and sale records preserve user-entered costs", () => {
   const purchaseHandler = section("window.markPurchased=", "window.removeRecord=");
   const purchaseRecords = [{ id: "book-1", cost: 5 }];
