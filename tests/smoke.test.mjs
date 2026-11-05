@@ -268,7 +268,7 @@ test("missing or invalid Amazon and fulfillment fees cannot produce a BUY recomm
   let result = calc();
   assert.equal(result.status, "REVIEW");
   assert.match(elements.decision.innerHTML, /Enter the current FBA fulfillment fee/);
-  assert.equal(elements.net.value, "Enter required fees");
+  assert.equal(elements.net.value, "Enter required inputs");
   assert.equal(elements.fbaFeesTotal.textContent, "Enter the current FBA fulfillment fee");
   assert.equal(elements.fbaMaxBuy.textContent, "—");
 
@@ -315,15 +315,16 @@ test("actual purchase and sale records preserve user-entered costs", () => {
   const purchaseWindow = {};
   let purchaseSaves = 0;
   const mark = new Function("records", "persist", "window", "prompt", "alert", purchaseHandler + "return window.markPurchased;")(
-    purchaseRecords, () => purchaseSaves++, purchaseWindow, () => "6.75", () => {}
+    purchaseRecords, () => purchaseSaves++, purchaseWindow, (() => { const answers = ["6.75", "1.25"]; return () => answers.shift(); })(), () => {}
   );
   mark("book-1");
   assert.equal(purchaseRecords[0].actualPurchaseCost, 6.75);
+  assert.equal(purchaseRecords[0].actualInboundCosts, 1.25);
   assert.equal(purchaseRecords[0].stage, "PURCHASED");
   assert.equal(purchaseSaves, 1);
 
   const saleHandler = section("$('recordSale').onclick=", "$('saveSettings').onclick");
-  const saleRecords = [{ id: "book-1", purchased: true, actualPurchaseCost: 6.75, shipping: 1, other: 1 }];
+  const saleRecords = [{ id: "book-1", purchased: true, actualPurchaseCost: 6.75, actualInboundCosts: 1.25, shipping: 1, other: 1 }];
   const elements = {
     recordSale: {}, saleBook: { value: "book-1" }, salePrice: { value: "30" },
     saleFees: { value: "5" }, saleCosts: { value: "2" }, saleStatus: { textContent: "" }
@@ -333,7 +334,8 @@ test("actual purchase and sale records preserve user-entered costs", () => {
     id => elements[id], saleRecords, id => Number(elements[id].value) || 0, () => saleSaves++
   );
   elements.recordSale.onclick();
-  assert.equal(saleRecords[0].sale.profit, 14.25);
+  assert.equal(saleRecords[0].sale.profit, 15);
+  assert.equal(saleRecords[0].sale.acquisitionExtrasSource, "actual");
   assert.equal(saleRecords[0].stage, "SOLD");
   assert.equal(saleSaves, 1);
 });
@@ -378,6 +380,8 @@ test("review queue surfaces Amazon ISBN, condition, and eligibility guardrails",
   assert.match(html, /moldy or unclean copies/);
   assert.match(html, /advance reading copies and uncorrected proofs/);
   assert.match(html, /Condition guidelines/);
+  assert.match(html, /Inbound \/ prep costs/);
+  assert.match(html, /actualInboundCosts/);
 });
 
 test("workflow dropdown captures the actual purchase cost before marking a book purchased or listed", () => {
@@ -391,10 +395,11 @@ test("workflow dropdown captures the actual purchase cost before marking a book 
   );
   fn("book-1", "LISTED");
   assert.equal(records[0].actualPurchaseCost, 3.25);
+  assert.equal(records[0].actualInboundCosts, 3.25);
   assert.equal(records[0].purchased, true);
   assert.equal(records[0].stage, "LISTED");
   assert.equal(saved, 1);
-  assert.equal(prompts.length, 1);
+  assert.equal(prompts.length, 2);
 });
 
 test("workflow dropdown cancellation and invalid purchase amounts do not change inventory", () => {
@@ -413,9 +418,75 @@ test("workflow dropdown cancellation and invalid purchase amounts do not change 
   }
 });
 
+test("purchase cost must be explicit and negative acquisition costs cannot create a BUY recommendation", () => {
+  const source = section("function calc(){", "['price','fees','cost'");
+  const elements = {
+    price: { value: "30" }, cost: { value: "" }, shipping: { value: "1" }, other: { value: "1" },
+    fees: { value: "" }, referralRate: { value: "15" }, fbaFee: { value: "4" }, closingFee: { value: "1.80" },
+    fbmShip: { value: "5" }, fulfillment: { value: "FBA" }, eligibility: { value: "yes" }, fba: { value: "yes" },
+    net: {}, roi: {}, margin: {}, maxBuy: {}, breakEven: {}, fbaCompare: {}, fbmCompare: {},
+    fbaFeesTotal: {}, fbmFeesTotal: {}, fbaMaxBuy: {}, fbmMaxBuy: {}, decision: {}
+  };
+  const $ = id => elements[id];
+  const val = id => Number(elements[id].value) || 0;
+  const money = value => "$" + Number(value).toFixed(2);
+  const settings = { minProfit: 7, minRoi: 50 };
+  const calc = new Function("val", "$", "money", "settings", source + "return calc;")(val, $, money, settings);
+
+  let result = calc();
+  assert.equal(result.status, "REVIEW");
+  assert.match(elements.decision.innerHTML, /Enter a valid purchase cost/);
+  elements.cost.value = "0";
+  result = calc();
+  assert.equal(result.status, "BUY");
+
+  elements.cost.value = "-5";
+  result = calc();
+  assert.equal(result.status, "REVIEW");
+  assert.match(elements.decision.innerHTML, /Enter a valid purchase cost/);
+
+  elements.cost.value = "5";
+  elements.shipping.value = "-1";
+  result = calc();
+  assert.equal(result.status, "REVIEW");
+  assert.match(elements.decision.innerHTML, /valid non-negative cost values/);
+});
+
+test("recording a sale requires confirmed actual purchase and inbound costs", () => {
+  const handler = section("$('recordSale').onclick=", "$('saveSettings').onclick");
+  const records = [{ id: "book-1", purchased: true, actualPurchaseCost: 5, shipping: 1, other: 1 }];
+  const elements = {
+    recordSale: {}, saleBook: { value: "book-1" }, salePrice: { value: "20" },
+    saleFees: { value: "3" }, saleCosts: { value: "2" }, saleStatus: { textContent: "" }
+  };
+  let saved = 0;
+  new Function("$", "records", "persist", handler)(id => elements[id], records, () => saved++);
+  elements.recordSale.onclick();
+  assert.equal(records[0].sale, undefined);
+  assert.equal(saved, 0);
+  assert.match(elements.saleStatus.textContent, /Confirm the actual purchase price and inbound \/ prep costs/);
+});
+
+test("workflow stage change validates actual inbound costs before saving", () => {
+  const handler = section("window.setStage=", "window.markPurchased=");
+  for (const answer of [null, "", "-1", "not-money"]) {
+    const records = [{ id: "book-1", cost: 4.5, stage: "RESEARCH" }];
+    let saved = 0, alerts = 0;
+    const answers = ["4.5", answer];
+    const fn = new Function("records", "$", "persist", "prompt", "alert", "window", "render", handler + "return window.setStage;")(
+      records, () => ({ textContent: "" }), () => saved++, () => answers.shift(), () => alerts++, {}, () => {}
+    );
+    fn("book-1", "PURCHASED");
+    assert.equal(records[0].stage, "RESEARCH");
+    assert.equal(records[0].purchased, undefined);
+    assert.equal(saved, 0);
+    if (answer !== null) assert.equal(alerts, 1);
+  }
+});
+
 test("actual sale rejects negative costs and duplicate sale entries", () => {
   const handler = section("$('recordSale').onclick=", "$('saveSettings').onclick");
-  const records = [{ id: "book-1", purchased: true, actualPurchaseCost: 5 }];
+  const records = [{ id: "book-1", purchased: true, actualPurchaseCost: 5, actualInboundCosts: 0 }];
   const elements = {
     recordSale: {}, saleBook: { value: "book-1" }, salePrice: { value: "20" },
     saleFees: { value: "-1" }, saleCosts: { value: "0" }, saleStatus: { textContent: "" }
@@ -438,7 +509,7 @@ test("actual sale rejects negative costs and duplicate sale entries", () => {
 
 test("recorded sale can be edited with validated amounts and recalculated profit", () => {
   const handler = section("window.editSale=", "window.undoSale=");
-  const records = [{ id: "book-1", actualPurchaseCost: 5, shipping: 1, other: 1, sale: { price: 20, fees: 3, costs: 2, profit: 8, date: "2026-01-01" } }];
+  const records = [{ id: "book-1", actualPurchaseCost: 5, actualInboundCosts: 2, shipping: 1, other: 1, sale: { price: 20, fees: 3, costs: 2, profit: 8, date: "2026-01-01" } }];
   const answers = ["30", "5", "3"];
   let saved = 0;
   const fn = new Function("records", "persist", "prompt", "alert", "window", handler + "return window.editSale;")(
