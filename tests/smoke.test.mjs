@@ -496,9 +496,10 @@ test("history CSV export round-trips source text and zero offers", () => {
   const handler=section("$('exportHistory').onclick=","// Free Book Photo Scanner");
   const book={asin:"B000000000",history:[{date:"2026-11-05",price:10.25,rank:12345,offers:0,source:'Amazon, "used" page'}]};
   let saved=null;
-  const $=()=>({textContent:""});
-  const run=new Function("$","historyBook","download",handler+";return $('exportHistory').onclick;")($,()=>book,(...args)=>saved=args);
-  run();
+  const elements={exportHistory:{},snapshotStatus:{textContent:""}};
+  const $=id=>elements[id]||(elements[id]={textContent:""});
+  new Function("$","historyBook","download",handler)($,()=>book,(...args)=>saved=args);
+  elements.exportHistory.onclick();
   assert.equal(saved[0],"BookFlip_history_B000000000.csv");
   assert.equal(saved[2],"text/csv");
   const rows=helpers.parseHistoryCSV(saved[1]);
@@ -552,5 +553,5 @@ test("Keepa API imports require explicit Amazon.com domain IDs for both history 
 
 test("browser app never contains or stores a shared Keepa API key", () => {
   assert.doesNotMatch(appScript,/KEEPA_API_KEY|api\.keepa\.com/);
-  assert.match(appScript,/Official Keepa Product Object format/);
+  assert.match(html,/Official Keepa Product Object format/);
 });
