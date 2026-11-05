@@ -598,7 +598,7 @@ test("Book Scout can analyze Keepa JSON directly without saving the book or usin
 });
 
 test("Photo Scanner keeps valid ISBNs but filters barcode noise and unrelated numeric OCR",()=>{
- const scanner=new Function(section("function findISBNInText","$('scanBookPhotos').onclick"),"return {findISBNInText,cleanBookOCR,makeBookPrompt};")();
+ const scanner=new Function(section("function findISBNInText","function makeBookPrompt"),"return {findISBNInText,cleanBookOCR};")();
  const raw="THE GREAT GATSBY\nF. SCOTT FITZGERALD\nISBN 978-0-306-40615-7\n9780306406157 12345678901234567890\nCopyright 2020\nRandom barcode 1234567890123456";
  assert.equal(scanner.findISBNInText(raw),"9780306406157");
  const notes=scanner.cleanBookOCR(raw);
