@@ -279,3 +279,116 @@ test("responsive layout, scanner, flashlight, metadata lookup, and backup contro
   assert.match(html, /id="backupBtn"/);
   assert.match(html, /id="restoreFile"/);
 });
+
+
+test("Keepa Worker verifies a signed Cloudflare Access JWT before requesting Keepa", async () => {
+  const { webcrypto } = await import("node:crypto");
+  const source = await readFile(new URL("../keepa-worker/worker.js", import.meta.url), "utf8");
+  const factory = new Function("Response", "URL", "fetch", source.replace("export default {", "return {"));
+  const calls = [];
+  const privateKeys = await webcrypto.subtle.generateKey({
+    name: "RSASSA-PKCS1-v1_5", modulusLength: 2048,
+    publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256"
+  }, true, ["sign", "verify"]);
+  const jwk = await webcrypto.subtle.exportKey("jwk", privateKeys.publicKey);
+  jwk.kid = "test-key";
+  const encode = value => Buffer.from(JSON.stringify(value)).toString("base64url");
+  const header = encode({ alg: "RS256", kid: "test-key", typ: "JWT" });
+  const payload = encode({
+    iss: "https://test.cloudflareaccess.com",
+    aud: ["allowed-app-audience"],
+    sub: "test-user",
+    exp: Math.floor(Date.now() / 1000) + 300,
+    nbf: Math.floor(Date.now() / 1000) - 30
+  });
+  const signed = header + "." + payload;
+  const signature = Buffer.from(await webcrypto.subtle.sign(
+    "RSASSA-PKCS1-v1_5", privateKeys.privateKey, new TextEncoder().encode(signed)
+  )).toString("base64url");
+  const token = signed + "." + signature;
+  const mockFetch = async url => {
+    calls.push(String(url));
+    if (String(url).includes("/cdn-cgi/access/certs")) {
+      return new Response(JSON.stringify({ keys: [jwk] }), { status: 200 });
+    }
+    return new Response(JSON.stringify({
+      products: [{ asin: "B000000000", domainId: 1, csv: [[], [], [100000, 1250]] }]
+    }), { status: 200 });
+  };
+  const worker = factory(Response, URL, mockFetch);
+  const request = {
+    method: "POST",
+    url: "https://proxy.test/api/keepa/product",
+    headers: { get: name => ({
+      Origin: "https://cdog2233.github.io",
+      "Content-Length": "22",
+      "Cf-Access-Jwt-Assertion": token
+    }[name] ?? null) },
+    text: async () => '{"asin":"B000000000"}'
+  };
+  const response = await worker.fetch(request, {
+    ALLOWED_ORIGIN: "https://cdog2233.github.io",
+    KEEPA_API_KEY: "server-only-secret",
+    CF_ACCESS_TEAM_DOMAIN: "test.cloudflareaccess.com",
+    CF_ACCESS_AUD: "allowed-app-audience"
+  });
+  assert.equal(response.status, 200);
+  const data = await response.json();
+  assert.equal(data.products[0].asin, "B000000000");
+  assert.equal(calls.length, 2);
+  const upstreamUrl = new URL(calls[1]);
+  assert.equal(upstreamUrl.searchParams.get("key"), "server-only-secret");
+  assert.equal(upstreamUrl.searchParams.get("asin"), "B000000000");
+  assert.equal(upstreamUrl.searchParams.get("domain"), "1");
+  assert.equal(upstreamUrl.searchParams.get("history"), "1");
+});
+
+test("Keepa Worker requests offers only when explicitly enabled and never returns the API key", async () => {
+  const { webcrypto } = await import("node:crypto");
+  const source = await readFile(new URL("../keepa-worker/worker.js", import.meta.url), "utf8");
+  const factory = new Function("Response", "URL", "fetch", source.replace("export default {", "return {"));
+  const pair = await webcrypto.subtle.generateKey({
+    name: "RSASSA-PKCS1-v1_5", modulusLength: 2048,
+    publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256"
+  }, true, ["sign", "verify"]);
+  const jwk = await webcrypto.subtle.exportKey("jwk", pair.publicKey);
+  jwk.kid = "offers-key";
+  const encode = value => Buffer.from(JSON.stringify(value)).toString("base64url");
+  const h = encode({ alg: "RS256", kid: "offers-key" });
+  const p = encode({
+    iss: "https://offers.cloudflareaccess.com", aud: "offers-audience",
+    exp: Math.floor(Date.now() / 1000) + 300
+  });
+  const input = h + "." + p;
+  const sig = Buffer.from(await webcrypto.subtle.sign(
+    "RSASSA-PKCS1-v1_5", pair.privateKey, new TextEncoder().encode(input)
+  )).toString("base64url");
+  const token = input + "." + sig;
+  const urls = [];
+  const mockFetch = async url => {
+    urls.push(String(url));
+    if (String(url).includes("/cdn-cgi/access/certs")) return new Response(JSON.stringify({ keys: [jwk] }));
+    return new Response(JSON.stringify({ products: [{ asin: "B000000000", domainId: 1 }] }));
+  };
+  const worker = factory(Response, URL, mockFetch);
+  const request = {
+    method: "POST", url: "https://proxy.test/api/keepa/product",
+    headers: { get: name => ({
+      Origin: "https://cdog2233.github.io",
+      "Cf-Access-Jwt-Assertion": token,
+      "Content-Length": "40"
+    }[name] ?? null) },
+    text: async () => '{"asin":"B000000000","includeOffers":true}'
+  };
+  const response = await worker.fetch(request, {
+    ALLOWED_ORIGIN: "https://cdog2233.github.io",
+    KEEPA_API_KEY: "private-secret",
+    CF_ACCESS_TEAM_DOMAIN: "offers.cloudflareaccess.com",
+    CF_ACCESS_AUD: "offers-audience"
+  });
+  assert.equal(response.status, 200);
+  const upstream = new URL(urls[1]);
+  assert.equal(upstream.searchParams.get("offers"), "20");
+  const responseText = JSON.stringify(await response.json());
+  assert.ok(!responseText.includes("private-secret"));
+});
