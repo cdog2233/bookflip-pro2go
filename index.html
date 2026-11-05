@@ -108,10 +108,10 @@ body[data-card-style="elevated"] .card,body[data-card-style="elevated"] .metric{
 <h2>3. Calculate the deal</h2><p>Enter current comparable selling price and estimated costs. Estimates are not a quote from Amazon.</p>
 <div class="two">
 <div class="field"><label>Expected selling price ($)</label><input id="price" type="number" min="0" step=".01" placeholder="24.99"></div>
-<div class="field"><label>Amazon referral fee (%)</label><input id="referralRate" type="number" min="0" max="100" step=".1" placeholder="Enter category rate"></div>
+<div class="field"><label>Amazon referral fee (%)</label><input id="referralRate" type="number" min="0" max="100" step=".1" value="15" placeholder="15% default for Amazon Books"></div>
 <div class="field"><label>FBA fulfillment fee ($)</label><input id="fbaFee" type="number" min="0" step=".01" placeholder="Enter current fee"></div>
 <div class="field"><label>FBM postage + packaging ($)</label><input id="fbmShip" type="number" min="0" step=".01" placeholder="Enter your shipping cost"></div>
-<div class="field"><label>Per-item closing fee, if applicable ($)</label><input id="closingFee" type="number" min="0" step=".01" placeholder="0.00"></div>
+<div class="field"><label>Per-item closing fee, if applicable ($)</label><input id="closingFee" type="number" min="0" step=".01" value="1.80" placeholder="1.80 default for Amazon Books"></div>
 <div class="field"><label>Other Amazon fees ($)</label><input id="fees" type="number" min="0" step=".01" placeholder="0.00"></div>
 <div class="field"><label>Purchase cost ($)</label><input id="cost" type="number" min="0" step=".01" placeholder="2.00"></div>
 <div class="field"><label>Inbound shipping / prep ($)</label><input id="shipping" type="number" min="0" step=".01" placeholder="1.00"></div>
@@ -120,7 +120,7 @@ body[data-card-style="elevated"] .card,body[data-card-style="elevated"] .metric{
 </div>
 <div class="kpis"><div class="kpi"><span>Selected-plan ROI</span><b id="roi">—</b></div><div class="kpi"><span>Profit margin</span><b id="margin">—</b></div><div class="kpi"><span>Maximum buy price</span><b id="maxBuy">—</b></div><div class="kpi"><span>Break-even sale price</span><b id="breakEven">—</b></div></div>
 <div class="result"><h3>FBA vs. FBM comparison</h3><div class="two"><div class="kpi"><span>FBA estimate</span><b id="fbaCompare">Enter sale price</b><span>Fees: <b id="fbaFeesTotal">—</b> · Max buy: <b id="fbaMaxBuy">—</b></span></div><div class="kpi"><span>FBM estimate</span><b id="fbmCompare">Enter sale price</b><span>Fees: <b id="fbmFeesTotal">—</b> · Max buy: <b id="fbmMaxBuy">—</b></span></div></div></div>
-<p class="muted" style="font-size:11px;margin:0">Enter the current fee values for the exact book category and fulfillment method. Referral rates vary by category; FBA fees vary by size and weight. ROI includes acquisition, inbound and entered selling costs. These are estimates, not live Amazon quotes.</p>
+<p class="muted" style="font-size:11px;margin:0">Amazon Books defaults are 15% referral + $1.80 closing fee per item. Verify the exact fee category in Seller Central; add the $0.99 Individual-plan per-item fee under Other Amazon fees if it applies. FBA fees vary by size and weight. ROI includes acquisition, inbound and entered selling costs. These are estimates, not live Amazon quotes.</p>
 <div id="decision" class="result"><span class="pill review">REVIEW</span><p class="muted" style="margin:8px 0 0">Enter your numbers and confirm eligibility to get a recommendation.</p></div>
 <div class="row" style="margin-top:14px"><button class="btn" id="saveBtn">Save research</button><button class="btn secondary" id="clearBtn">Clear form</button></div>
 </div>
