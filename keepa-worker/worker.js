@@ -99,6 +99,7 @@ export default {
         if (rawBody.length > 2048) return json({ error: "Request is too large." }, 413, allowedOrigin);
         body = JSON.parse(rawBody);
       } catch { return json({ error: "Send a valid JSON request." }, 400, allowedOrigin); }
+      if (!body || typeof body !== "object" || Array.isArray(body)) return json({ error: "Send a JSON object with an ASIN." }, 400, allowedOrigin);
       const asin = String(body.asin || "").trim().toUpperCase();
       if (!/^[A-Z0-9]{10}$/.test(asin)) return json({ error: "Enter a valid 10-character ASIN." }, 400, allowedOrigin);
       const includeOffers = body.includeOffers === true;
