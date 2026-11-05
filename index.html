@@ -17,7 +17,7 @@ main{max-width:1100px;margin:0 auto;padding:22px 16px 100px}.topline{display:fle
 table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:11px 8px;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}td strong{display:block}.tablewrap{overflow-x:auto}.empty{text-align:center;padding:26px 10px;color:var(--muted);font-size:13px}
  .inventory-tools{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:9px;margin:14px 0}.inventory-tools input,.inventory-tools select{width:100%;min-width:0;border:1px solid #dce2eb;border-radius:11px;padding:11px;background:#fff;color:var(--ink);font:inherit}.inventory-summary{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}.inventory-summary .pill{font-size:10px}.book-title{font-weight:800;display:block}.book-sub{display:block;margin-top:3px}.stage-pill{background:#e8f0ff;color:#2548a5}.stage-purchased{background:#e7f7ef;color:var(--green)}.stage-listed{background:#e9f4ff;color:#225d91}.stage-sold{background:#e7f7ef;color:var(--green)}.stage-skipped{background:#f0f1f4;color:#657084}.detail-box{margin-top:8px;padding:10px;background:#f7f9fc;border-radius:10px;font-size:12px}.detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.detail-grid b{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}.detail-grid span{overflow-wrap:anywhere}.table-actions{display:flex;gap:6px;flex-wrap:wrap}.table-actions .btn{white-space:nowrap}
  @media(max-width:700px){.inventory-tools{grid-template-columns:1fr 1fr}.inventory-tools input{grid-column:span 2}.detail-grid{grid-template-columns:1fr 1fr}}
-footer{color:var(--muted);font-size:11px;text-align:center;padding:24px 10px}
+.ai-photo-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:10px 0}.ai-photo{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--bg)}.ai-photo img{width:100%;height:130px;object-fit:cover;display:block}.ai-photo small{display:block;padding:5px 7px;color:var(--muted);font-size:10px;overflow-wrap:anywhere}.ai-chat{display:flex;flex-direction:column;gap:10px;margin:14px 0;max-height:430px;overflow:auto}.ai-message{max-width:94%;padding:12px 14px;border-radius:14px;background:var(--bg);border:1px solid var(--line);white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px}.ai-message.user{align-self:flex-end;background:var(--blue2);border-color:transparent}.ai-message.assistant{align-self:flex-start}.ai-message .btn{margin-top:9px}.ai-empty{padding:18px;border:1px dashed var(--line);border-radius:12px;color:var(--muted);font-size:13px;text-align:center}@media(max-width:600px){.ai-photo-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ai-photo img{height:145px}.ai-message{max-width:100%}}footer{color:var(--muted);font-size:11px;text-align:center;padding:24px 10px}
 @media(max-width:700px){main{padding:18px 13px 100px}.grid{grid-template-columns:1fr 1fr}.grid .metric:last-child{grid-column:span 2}.topline h1{font-size:22px}.two{grid-template-columns:1fr}.card{padding:15px}.kpis{grid-template-columns:1fr 1fr}.kpi:last-child{grid-column:auto}.desktop-only{display:none}}
 @media(min-width:900px){.workgrid{display:grid;grid-template-columns:1.15fr .85fr;gap:14px}.workgrid .card{height:fit-content}}
 
@@ -76,7 +76,7 @@ body[data-card-style="elevated"] .card,body[data-card-style="elevated"] .metric{
 <main>
 <div class="topline"><div><div class="eyebrow">Your Amazon book business</div><h1>Scout smarter. Buy with confidence.</h1><div class="sub">A sourcing workspace built around the books you find, the numbers that matter, and the decisions you control.</div></div><span class="pill">BOOKFLIP 3.0 · RESEARCH MODE</span></div>
 <nav class="tabs" aria-label="Main navigation">
-<button class="tab active" data-tab="dashboard">Dashboard</button><button class="tab" data-tab="research">Book Scout</button><button class="tab" data-tab="review">Review Queue</button><button class="tab" data-tab="inventory">Inventory</button><button class="tab" data-tab="keepa">Research History</button><button class="tab" data-tab="settings">Settings</button>
+<button class="tab active" data-tab="dashboard">Dashboard</button><button class="tab" data-tab="research">Book Scout</button><button class="tab" data-tab="photoai">AI Photo Assistant</button><button class="tab" data-tab="review">Review Queue</button><button class="tab" data-tab="inventory">Inventory</button><button class="tab" data-tab="keepa">Research History</button><button class="tab" data-tab="settings">Settings</button>
 </nav>
 <section class="view active" id="dashboard">
 <div class="grid"><div class="metric"><label>Books in your pipeline</label><strong id="mBooks">0</strong><small>Every saved research record</small></div><div class="metric"><label>Capital invested</label><strong id="mInvested">$0.00</strong><small>Purchase price + actual or estimated inbound costs</small></div><div class="metric"><label>Realized profit</label><strong id="mProfit">$0.00</strong><small>Legacy sales may use estimated inbound costs</small></div></div>
@@ -124,6 +124,23 @@ body[data-card-style="elevated"] .card,body[data-card-style="elevated"] .metric{
 <div id="decision" class="result"><span class="pill review">REVIEW</span><p class="muted" style="margin:8px 0 0">Enter your numbers and confirm eligibility to get a recommendation.</p></div>
 <div class="row" style="margin-top:14px"><button class="btn" id="saveBtn">Save research</button><button class="btn secondary" id="clearBtn">Clear form</button></div>
 </div>
+</section>
+<section class="view" id="photoai">
+<div class="card">
+ <div class="eyebrow">Camera-powered book research</div>
+ <h2 style="margin-top:5px">AI Book Photo Assistant</h2>
+ <p>Take up to four photos of a book. The assistant can read the cover, barcode and copyright page, then answer sourcing questions. For the best edition match, include the front cover and ISBN/copyright page.</p>
+ <div class="notice">Photos are resized in your browser and sent to your configured private AI service only when you press Analyze / Ask. They are not saved in BookFlip inventory or browser storage. AI findings are suggestions—verify the exact ISBN, Amazon listing, eligibility, condition and live numbers before buying.</div>
+ <div class="field"><label for="aiEndpoint">Private AI service endpoint</label><input id="aiEndpoint" type="url" inputmode="url" placeholder="https://your-worker.workers.dev" autocomplete="url"><div class="muted">Your secure Cloudflare Worker URL. The OpenAI API key stays on the server, never in this app.</div></div>
+ <div class="row"><button class="btn secondary small" id="saveAIEndpoint" type="button">Save service address</button><span class="muted" id="aiEndpointStatus" aria-live="polite">AI service not connected yet.</span></div>
+ <div class="field" style="margin-top:17px"><label for="aiPhotoInput">Book photos · front, back, spine, ISBN/copyright page</label><input id="aiPhotoInput" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" multiple><div class="muted">Up to 4 photos. Use clear, well-lit pictures. ISBN and small print are easiest to read up close.</div></div>
+ <div id="aiPhotoPreview" class="ai-photo-grid"></div>
+ <div class="row" style="margin:8px 0 15px"><button class="btn secondary small" id="clearAIPhotos" type="button">Remove photos</button><button class="btn secondary small" id="clearAIChat" type="button">New conversation</button></div>
+ <div id="aiChat" class="ai-chat" aria-live="polite"><div class="ai-empty">Your book assistant is ready. Add a photo and ask something like “Identify this exact edition and tell me what I should verify before buying it.”</div></div>
+ <div class="field"><label for="aiQuestion">Ask about this book</label><textarea id="aiQuestion" rows="3" placeholder="Identify this book and edition. Read the ISBN if visible, point out edition clues, and tell me what to verify for Amazon resale."></textarea></div>
+ <div class="row"><button class="btn" id="askBookAI" type="button">Analyze photos / Ask AI</button><span id="aiStatus" class="muted" role="status">Add photos to begin.</span></div>
+</div>
+<div class="notice warn">Important: AI cannot confirm live Amazon prices, sales rank, seller eligibility or demand from a cover photo. Use Book Scout and Research History to verify those separately.</div>
 </section>
 <section class="view" id="review"><div class="card"><div class="eyebrow">Decision workspace</div><h2 style="margin-top:5px">Review before you spend</h2><p>Every saved book starts here. Confirm the edition, match the Amazon listing, check selling eligibility and verify the numbers. A green recommendation is never a substitute for these checks.</p><div class="inventory-tools" style="grid-template-columns:1fr 1fr"><select id="reviewFilter" aria-label="Filter review queue"><option value="OPEN">Needs review</option><option value="READY">Ready to buy</option><option value="ALL">All saved books</option></select><select id="reviewSort" aria-label="Sort review queue"><option value="NEWEST">Newest first</option><option value="PROFIT">Highest estimated profit</option></select></div><div id="reviewSummary" class="inventory-summary"></div><div id="reviewList"><div class="empty">No saved books to review yet. Save a book from Book Scout first.</div></div></div><div class="notice warn">Eligibility must be checked inside your own Amazon Seller Central account. FBA restrictions do not automatically mean a book cannot be sold merchant-fulfilled.</div><div class="notice">Amazon book guardrails: match the exact ISBN, edition and binding. Do not source moldy or unclean copies, books with missing pages or unreadable text, or promotional / advance reading copies and uncorrected proofs. Some products need approval even when Books generally allows Used; confirm the exact ASIN in your own Seller Central account before buying. <a href="https://sell.amazon.com/blog/amazon-condition-guidelines" target="_blank" rel="noopener">Condition guidelines</a> · <a href="https://sell.amazon.com/learn/how-to-sell-books/" target="_blank" rel="noopener">Book selling guide</a>.</div></section>
 <section class="view" id="inventory">
@@ -379,6 +396,97 @@ $('importHistory').onclick=async()=>{const r=historyBook(),file=$('historyCsv').
 function parseKeepaProductJSON(raw,expectedAsin){const parsed=typeof raw==='string'?JSON.parse(raw):raw;const products=Array.isArray(parsed)?parsed:(Array.isArray(parsed.products)?parsed.products:[parsed]);const product=products.find(p=>p&&(Array.isArray(p.csv)||Array.isArray(p.offers))&&(!expectedAsin||String(p.asin||'').toUpperCase()===String(expectedAsin).toUpperCase()));if(!product)throw Error('No matching Keepa Product API product data found.');const historyCsv=Array.isArray(product.csv)?product.csv:[];if(product.domainId!==undefined&&Number(product.domainId)!==1)throw Error('This importer currently supports Amazon.com only (Keepa domain ID 1).');if(expectedAsin&&product.asin&&String(product.asin).toUpperCase()!==String(expectedAsin).toUpperCase())throw Error('The JSON ASIN does not match the selected book.');const series=[{index:2,key:'price',scale:100,positive:true},{index:3,key:'rank',scale:1,positive:true},{index:12,key:'offers',scale:1,positive:false}],byTime=new Map();let imported=0;for(const spec of series){const arr=historyCsv[spec.index];if(!Array.isArray(arr))continue;if(arr.length%2!==0)throw Error('Malformed Keepa history array at type '+spec.index+'.');for(let i=0;i<arr.length;i+=2){const t=Number(arr[i]),v=Number(arr[i+1]);if(!Number.isFinite(t)||!Number.isFinite(v)||v<0||(spec.positive&&v===0))continue;const ms=(t+21564000)*60000;if(!Number.isFinite(ms))continue;const date=new Date(ms);if(Number.isNaN(date.getTime()))continue;const key=String(t);if(!byTime.has(key))byTime.set(key,{date:date.toISOString().slice(0,10),price:null,rank:null,offers:null,source:'Keepa API JSON · Amazon.com'});byTime.get(key)[spec.key]=v/spec.scale;imported++}}const rows=Array.from(byTime.values()).filter(p=>p.price!==null||p.rank!==null||p.offers!==null).sort((a,b)=>a.date.localeCompare(b.date));if(!rows.length&&!Array.isArray(product.offers))throw Error('No usable USED, SALES, or COUNT_USED history values or seller-level offers were found.');return rows}
 $('importKeepaJson').onclick=async()=>{const r=historyBook(),file=$('keepaJson').files[0];if(!r){$('keepaImportStatus').textContent='Select a saved book first.';return}if(!file){$('keepaImportStatus').textContent='Choose a Keepa JSON file first.';return}try{if(!/^[A-Z0-9]{10}$/i.test(r.asin||''))throw Error('The selected book needs a verified 10-character ASIN before Keepa data can be imported.');if(file.size>20*1024*1024)throw Error('Keepa JSON files must be 20 MB or smaller.');const raw=JSON.parse(await file.text()),rows=parseKeepaProductJSON(raw,r.asin),offerSnapshot=parseKeepaOfferSnapshot(raw,r.asin);r.history=Array.isArray(r.history)?r.history:[];let added=0,duplicates=0;rows.forEach(p=>{if(r.history.some(old=>old.date===p.date&&old.price===p.price&&old.rank===p.rank&&old.offers===p.offers&&old.source===p.source)){duplicates++;return}r.history.push({...p,id:Date.now().toString()+Math.random().toString(36).slice(2,8)});added++});if(offerSnapshot)r.keepaOfferSnapshot=offerSnapshot;persist();refreshHistoryBooks();$('keepaImportStatus').textContent='Imported '+(added?added+' new dated history snapshots':'no new dated history snapshots')+(duplicates?', skipped '+duplicates+' duplicates':'')+(offerSnapshot?' and '+offerSnapshot.offers.length+' seller-level offer records':' (no seller-level offers were included in this JSON file)')+' for '+r.title+'.'}catch(e){$('keepaImportStatus').textContent='Keepa import failed: '+e.message}};
 $('exportHistory').onclick=()=>{const r=historyBook();if(!r){$('snapshotStatus').textContent='Select a saved book first.';return}const cols=['date','used_price','sales_rank','used_offers','source'],rows=(r.history||[]).map(p=>[p.date,p.price??'',p.rank??'',p.offers??'',p.source||''].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(','));download('BookFlip_history_'+(r.asin||r.isbn||'book')+'.csv',[cols.join(','),...rows].join('\n'),'text/csv')};
+
+
+// AI Book Photo Assistant — photos and conversation remain in memory only.
+const AI_ENDPOINT_KEY='bookflip_pro2go_ai_endpoint';
+let aiPhotos=[],aiMessages=[],aiBusy=false;
+function renderAIPhotos(){
+ const host=$('aiPhotoPreview');host.replaceChildren();
+ aiPhotos.forEach((photo,index)=>{
+  const card=document.createElement('div');card.className='ai-photo';
+  const img=document.createElement('img');img.src=photo.data;img.alt='Book photo '+(index+1);
+  const label=document.createElement('small');label.textContent='Photo '+(index+1)+' · '+photo.name;
+  card.append(img,label);host.append(card);
+ });
+ $('clearAIPhotos').disabled=!aiPhotos.length;
+}
+function renderAIChat(){
+ const host=$('aiChat');host.replaceChildren();
+ if(!aiMessages.length){const empty=document.createElement('div');empty.className='ai-empty';empty.textContent='Your book assistant is ready. Add a photo and ask a sourcing question.';host.append(empty);return}
+ aiMessages.forEach(message=>{
+  const bubble=document.createElement('div');bubble.className='ai-message '+message.role;bubble.textContent=message.content;host.append(bubble);
+  if(message.role==='assistant'){
+   const matches=message.content.match(/(?:ISBN(?:-1[03])?\s*[:#]?\s*)?((?:97[89][\s-]?)?\d[\d\s-]{8,15}[\dXx])/ig)||[];
+   const found=matches.map(value=>isbnClean(value)).find(value=>isbnValid(value));
+   if(found){const button=document.createElement('button');button.type='button';button.className='btn secondary small';button.textContent='Use ISBN '+found+' in Book Scout';button.onclick=()=>{ $('isbn').value=found;showTab('research');$('lookupStatus').textContent='ISBN copied from the AI response. Confirm it matches the physical copy, then find book details.';$('lookupBtn').click()};bubble.append(button)}
+  }
+ });
+ host.scrollTop=host.scrollHeight;
+}
+function compressAIPhoto(file){
+ return new Promise((resolve,reject)=>{
+  if(!file||!/^image\/(jpeg|png|webp)$/.test(file.type)){reject(new Error('Choose a JPEG, PNG or WebP photo.'));return}
+  if(file.size>12*1024*1024){reject(new Error('Each original photo must be 12 MB or smaller.'));return}
+  const reader=new FileReader();
+  reader.onerror=()=>reject(new Error('Could not read that photo.'));
+  reader.onload=()=>{
+   const image=new Image();
+   image.onerror=()=>reject(new Error('That image could not be opened.'));
+   image.onload=()=>{
+    const max=1500,scale=Math.min(1,max/Math.max(image.width,image.height));
+    const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(image.width*scale));canvas.height=Math.max(1,Math.round(image.height*scale));
+    const ctx=canvas.getContext('2d');if(!ctx){reject(new Error('Photo processing is unavailable in this browser.'));return}
+    ctx.drawImage(image,0,0,canvas.width,canvas.height);
+    let data=canvas.toDataURL('image/jpeg',.78);
+    if(data.length>1_200_000)data=canvas.toDataURL('image/jpeg',.62);
+    if(data.length>1_200_000){reject(new Error('Photo is still too large after compression. Try a closer crop.'));return}
+    resolve({name:String(file.name||'book photo').slice(0,80),data});
+   };
+   image.src=reader.result;
+  };
+  reader.readAsDataURL(file);
+ });
+}
+$('aiEndpoint').value=localStorage.getItem(AI_ENDPOINT_KEY)||'';
+$('saveAIEndpoint').onclick=()=>{
+ const endpoint=$('aiEndpoint').value.trim().replace(/\/$/,'');
+ if(endpoint&&!/^https:\/\//i.test(endpoint)){$('aiEndpointStatus').textContent='Use a secure HTTPS Worker address.';return}
+ if(endpoint)localStorage.setItem(AI_ENDPOINT_KEY,endpoint);else localStorage.removeItem(AI_ENDPOINT_KEY);
+ $('aiEndpointStatus').textContent=endpoint?'Service address saved on this device.':'Service address cleared.';
+};
+$('aiPhotoInput').addEventListener('change',async event=>{
+ const files=Array.from(event.target.files||[]);event.target.value='';
+ if(aiPhotos.length+files.length>4){$('aiStatus').textContent='Use up to four photos. Remove one before adding more.';return}
+ for(const file of files){
+  try{const photo=await compressAIPhoto(file);aiPhotos.push(photo);renderAIPhotos();$('aiStatus').textContent=aiPhotos.length+' photo(s) ready.'}
+  catch(error){$('aiStatus').textContent=error.message}
+ }
+});
+$('clearAIPhotos').onclick=()=>{aiPhotos=[];renderAIPhotos();$('aiStatus').textContent='Photos removed. They are not stored.'};
+$('clearAIChat').onclick=()=>{aiMessages=[];renderAIChat();$('aiQuestion').value='';$('aiStatus').textContent='New conversation started.'};
+$('askBookAI').onclick=async()=>{
+ if(aiBusy)return;
+ const endpoint=($('aiEndpoint').value.trim()||localStorage.getItem(AI_ENDPOINT_KEY)||'').replace(/\/$/,'');
+ const question=$('aiQuestion').value.trim();
+ if(!endpoint){$('aiStatus').textContent='Add your secure AI service address first.';return}
+ if(!/^https:\/\//i.test(endpoint)){$('aiStatus').textContent='The AI service address must start with https://';return}
+ if(!question){$('aiStatus').textContent='Enter a question first.';return}
+ if(!aiPhotos.length&&!aiMessages.length){$('aiStatus').textContent='Add at least one book photo first.';return}
+ aiBusy=true;$('askBookAI').disabled=true;$('askBookAI').textContent='Analyzing…';$('aiStatus').textContent='Sending photos securely for analysis…';
+ const prior=aiMessages.slice(-8).map(message=>({role:message.role,content:message.content}));
+ try{
+  const response=await fetch(endpoint+'/api/book-assistant',{method:'POST',credentials:'include',headers:{'content-type':'application/json'},body:JSON.stringify({question,images:aiPhotos.map(photo=>photo.data),history:prior})});
+  let data={};try{data=await response.json()}catch{}
+  if(!response.ok)throw new Error(data.error||('AI service returned HTTP '+response.status+'.'));
+  if(!data.answer)throw new Error('The AI service returned an empty answer.');
+  aiMessages.push({role:'user',content:question},{role:'assistant',content:String(data.answer)});
+  renderAIChat();$('aiQuestion').value='';$('aiStatus').textContent='Analysis complete. Ask a follow-up or add another photo.';
+ }catch(error){
+  $('aiStatus').textContent=error.message==='Failed to fetch'?'Could not reach the AI service. Check the Worker address, Cloudflare Access and iPhone Safari connection.':error.message;
+ }finally{aiBusy=false;$('askBookAI').disabled=false;$('askBookAI').textContent='Analyze photos / Ask AI'}
+};
+renderAIPhotos();renderAIChat();
 
 function init(){applyAppearance();bindAppearanceControls();if(records.length&&records[0].title===undefined){/* preserve older local records */}records.forEach(r=>{if(!r.reviewChecks)r.reviewChecks={edition:false,amazonMatch:false,eligibility:false,price:false,condition:false,fulfillment:false};if(!r.reviewState)r.reviewState='NEEDS_REVIEW';if(!r.fulfillment)r.fulfillment='FBA'});render();calc();refreshHistoryBooks();$("snapDate").value=historyLocalDate()}
 init();
