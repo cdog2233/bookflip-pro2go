@@ -452,6 +452,47 @@ test("purchase cost must be explicit and negative acquisition costs cannot creat
   assert.match(elements.decision.innerHTML, /valid non-negative cost values/);
 });
 
+test("recording a sale requires explicit actual fees and shipping costs", () => {
+  const handler = section("$('recordSale').onclick=", "$('saveSettings').onclick");
+  const records = [{ id: "book-1", purchased: true, actualPurchaseCost: 5, actualInboundCosts: 0 }];
+  const elements = {
+    recordSale: {}, saleBook: { value: "book-1" }, salePrice: { value: "20" },
+    saleFees: { value: "" }, saleCosts: { value: "0" }, saleStatus: { textContent: "" }
+  };
+  let saved = 0;
+  new Function("$", "records", "persist", handler)(id => elements[id], records, () => saved++);
+  elements.recordSale.onclick();
+  assert.equal(records[0].sale, undefined);
+  assert.equal(saved, 0);
+  assert.match(elements.saleStatus.textContent, /explicit non-negative amounts/);
+
+  elements.saleFees.value = "3";
+  elements.saleCosts.value = "";
+  elements.recordSale.onclick();
+  assert.equal(records[0].sale, undefined);
+  assert.equal(saved, 0);
+
+  elements.saleCosts.value = "0";
+  elements.recordSale.onclick();
+  assert.equal(records[0].sale.profit, 12);
+  assert.equal(saved, 1);
+});
+
+test("editing a sale rejects blank fee or shipping fields instead of treating them as zero", () => {
+  const handler = section("window.editSale=", "window.undoSale=");
+  const records = [{ id: "book-1", actualPurchaseCost: 5, actualInboundCosts: 0, sale: { price: 20, fees: 3, costs: 2, profit: 10 } }];
+  const answers = ["30", "", "3"];
+  let saved = 0, alerts = 0;
+  const edit = new Function("records", "persist", "prompt", "alert", "window", handler + "return window.editSale;")(
+    records, () => saved++, () => answers.shift(), () => alerts++, {}
+  );
+  edit("book-1");
+  assert.equal(records[0].sale.price, 20);
+  assert.equal(records[0].sale.profit, 10);
+  assert.equal(saved, 0);
+  assert.equal(alerts, 1);
+});
+
 test("recording a sale requires confirmed actual purchase and inbound costs", () => {
   const handler = section("$('recordSale').onclick=", "$('saveSettings').onclick");
   const records = [{ id: "book-1", purchased: true, actualPurchaseCost: 5, shipping: 1, other: 1 }];

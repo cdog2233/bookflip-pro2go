@@ -333,9 +333,9 @@ window.editSale=id=>{
  const p=ask('Actual sale price ($)',r.sale.price);if(p===null)return;
  const f=ask('Actual Amazon / marketplace fees ($)',r.sale.fees);if(f===null)return;
  const c=ask('Actual shipping / other costs ($)',r.sale.costs);if(c===null)return;
- const amount=raw=>{if(String(raw).trim()==='')return 0;const n=Number(raw);return Number.isFinite(n)&&n>=0?n:null};
+ const amount=raw=>{if(String(raw).trim()==='')return null;const n=Number(raw);return Number.isFinite(n)&&n>=0?n:null};
  const price=amount(p),fees=amount(f),costs=amount(c);
- if(price===null||fees===null||costs===null||price<=0){alert('Enter a sale price greater than $0 and valid non-negative fees and costs.');return}
+ if(price===null||fees===null||costs===null||price<=0){alert('Enter a sale price greater than $0 and explicit non-negative fees and costs. Use 0.00 only when a cost was truly zero.');return}
  r.actualPurchaseCost=purchaseCost;r.actualInboundCosts=extras;
  r.sale={...r.sale,price,fees,costs,profit:price-fees-costs-purchaseCost-extras,acquisitionExtrasSource:'actual',updatedAt:new Date().toISOString()};persist();
 };
@@ -346,9 +346,9 @@ $('recordSale').onclick=()=>{
  if(!r||!r.purchased){$('saleStatus').textContent='Mark a book as purchased before recording a sale.';return}
  if(r.sale){$('saleStatus').textContent='A sale is already recorded for this book. Use Edit sale or Undo sale in the inventory row to correct it.';return}
  if(r.actualPurchaseCost==null||r.actualInboundCosts==null){$('saleStatus').textContent='Confirm the actual purchase price and inbound / prep costs first. Use Update purchase costs in the inventory row; enter $0 if a cost was truly zero.';return}
- const readAmount=id=>{const raw=$(id).value.trim();if(raw==='')return 0;const n=Number(raw);return Number.isFinite(n)&&n>=0?n:null};
+ const readAmount=id=>{const raw=$(id).value.trim();if(raw==='')return null;const n=Number(raw);return Number.isFinite(n)&&n>=0?n:null};
  const sale=readAmount('salePrice'),fees=readAmount('saleFees'),costs=readAmount('saleCosts');
- if(sale===null||fees===null||costs===null){$('saleStatus').textContent='Enter valid non-negative amounts for sale price, actual fees and shipping / other costs.';return}
+ if(sale===null||fees===null||costs===null){$('saleStatus').textContent='Enter explicit non-negative amounts for sale price, actual fees and shipping / other costs. Enter 0.00 only when a cost was truly zero.';return}
  if(sale<=0){$('saleStatus').textContent='Enter a sale price greater than $0.';return}
  r.sale={price:sale,fees,costs,profit:sale-fees-costs-(+r.actualPurchaseCost||0)-(+r.actualInboundCosts||0),acquisitionExtrasSource:'actual',date:new Date().toISOString()};
  r.stage='SOLD';persist();$('saleStatus').textContent='Sale recorded. Profit uses your confirmed acquisition costs and actual sale fees / shipping.';['salePrice','saleFees','saleCosts'].forEach(id=>$(id).value='')
