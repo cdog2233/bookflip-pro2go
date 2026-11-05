@@ -100,9 +100,11 @@ body[data-card-style="elevated"] .card,body[data-card-style="elevated"] .metric{
 <div class="last-sale-card" id="lastSaleCard">
  <div class="last-sale-head"><div><div class="eyebrow">Amazon demand signal</div><h3>Most recent estimated sale activity</h3></div><span class="pill review">Keepa history</span></div>
  <p>After confirming the exact title, author, edition and ASIN, BookFlip can show the latest sales-rank drop recorded in imported Keepa history. This is an estimate of possible sales activity—not Amazon's actual order timestamp.</p>
- <div id="lastSaleResult" class="last-sale-result" aria-live="polite">Enter the exact book details and ASIN, then check for saved Keepa history.</div>
- <div class="row"><button class="btn secondary small" id="checkLastSaleBtn" type="button">Check saved sales history</button><button class="btn secondary small" id="openLastSaleHistoryBtn" type="button">Open Research History</button></div>
- <div class="fine">Requires a verified Amazon ASIN and Keepa Product API history imported for this exact listing. Amazon public listings do not expose the exact time of an individual sale.</div>
+ <div id="lastSaleResult" class="last-sale-result" aria-live="polite">Enter the exact book details and ASIN, then import Keepa history below. No saved Research History record is required.</div>
+ <div class="field" style="margin-top:10px"><label for="scoutKeepaJson">Keepa Product API JSON (history enabled)</label><input id="scoutKeepaJson" type="file" accept=".json,application/json"></div>
+ <div class="row"><button class="btn small" id="analyzeScoutKeepaBtn" type="button">Analyze Keepa JSON</button><button class="btn secondary small" id="checkLastSaleBtn" type="button">Refresh result</button><button class="btn secondary small" id="openLastSaleHistoryBtn" type="button">Open Research History (optional)</button></div>
+ <div id="scoutKeepaStatus" class="muted" role="status" style="margin-top:8px"></div>
+ <div class="fine">Keepa data is analyzed immediately in this page and is not saved unless you separately import it into Research History. A rank drop is only an estimate of possible sales activity—not proof of an order or its exact timestamp. Amazon public listings do not expose individual order times.</div>
 </div>
 <div class="two">
 <div class="field"><label>Book condition</label><select id="condition"><option>Very Good</option><option>Like New</option><option>Good</option><option>Acceptable</option></select></div>
@@ -466,15 +468,21 @@ function extractKeepaLastSalesSignal(raw,expectedAsin){
  return latest?{detected:true,asin:product.asin,source:'Keepa SALES rank history',...latest,importedAt:new Date().toISOString()}:{detected:false,asin:product.asin,source:'Keepa SALES rank history',importedAt:new Date().toISOString(),reason:'No downward sales-rank movement was found in the available history.'};
 }
 function scoutNormalizeMatch(value){return String(value||'').toLowerCase().replace(/[^a-z0-9]/g,'')}
+let scoutKeepaSignal=null;
 function renderScoutLastSale(){
  const box=$('lastSaleResult');if(!box)return;
  const title=$('title').value.trim(),author=$('author').value.trim(),edition=$('edition').value.trim(),asin=String($('asin').value||'').trim().toUpperCase();
  if(!title||!author||!edition||!asin){box.textContent='Enter the exact title, author, edition/binding and Amazon ASIN above to check the matching saved history.';return}
  if(!/^[A-Z0-9]{10}$/.test(asin)){box.textContent='The ASIN must be exactly 10 letters/numbers. Verify it on the Amazon product page.';return}
+ const directSignal=scoutKeepaSignal&&String(scoutKeepaSignal.asin||'').toUpperCase()===asin?scoutKeepaSignal:null;
+ if(directSignal){
+  if(directSignal.detected&&directSignal.timestamp){const when=new Date(directSignal.timestamp);box.innerHTML='<span class="pill buy">Possible sales activity</span><strong>'+historyEsc(when.toLocaleString())+'</strong><div class="muted">Latest recorded sales-rank drop: '+Number(directSignal.previousRank).toLocaleString()+' → '+Number(directSignal.rank).toLocaleString()+' ('+Number(directSignal.dropPercent||0).toFixed(1)+'% lower rank).</div><div class="muted">Analyzed from the Keepa file you just selected. This is a rank-change estimate, not proof that one copy sold at that exact time.</div>';return}
+  box.innerHTML='<span class="pill review">No drop detected</span><div>No downward sales-rank movement was found in the Keepa history for this ASIN.</div><div class="muted">'+historyEsc(directSignal.reason||'')+'</div>';return
+ }
  const book=records.find(r=>String(r.asin||'').toUpperCase()===asin);
- if(!book){box.textContent='No saved BookFlip record matches this ASIN. Save this exact edition in Book Scout first, then import its Keepa history in Research History.';return}
+ if(!book){box.textContent='No Keepa file analyzed for this ASIN yet. Choose the Keepa Product API JSON above and tap Analyze Keepa JSON. You do not need to save this book or open Research History.';return}
  if(scoutNormalizeMatch(book.title)!==scoutNormalizeMatch(title)||scoutNormalizeMatch(book.author)!==scoutNormalizeMatch(author)||scoutNormalizeMatch(book.edition)!==scoutNormalizeMatch(edition)){
-  box.textContent='The saved record with this ASIN does not match all entered title, author and edition details. Check the exact Amazon listing and update/save the record before using its sales history.';return
+  box.textContent='The saved record with this ASIN does not match all entered title, author and edition details. Check the exact Amazon listing before using its saved sales history.';return
  }
  const signal=book.lastSalesSignal;
  if(signal&&signal.detected&&signal.timestamp){
@@ -490,6 +498,19 @@ function renderScoutLastSale(){
 }
 function parseKeepaProductJSON(raw,expectedAsin){const parsed=typeof raw==='string'?JSON.parse(raw):raw;const products=Array.isArray(parsed)?parsed:(Array.isArray(parsed.products)?parsed.products:[parsed]);const product=products.find(p=>p&&(Array.isArray(p.csv)||Array.isArray(p.offers))&&(!expectedAsin||String(p.asin||'').toUpperCase()===String(expectedAsin).toUpperCase()));if(!product)throw Error('No matching Keepa Product API product data found.');const historyCsv=Array.isArray(product.csv)?product.csv:[];if(Number(product.domainId)!==1)throw Error('Keepa Product API JSON must include domainId 1 for Amazon.com.');if(expectedAsin&&product.asin&&String(product.asin).toUpperCase()!==String(expectedAsin).toUpperCase())throw Error('The JSON ASIN does not match the selected book.');const series=[{index:2,key:'price',scale:100,positive:true},{index:3,key:'rank',scale:1,positive:true},{index:12,key:'offers',scale:1,positive:false}],byTime=new Map();let imported=0;for(const spec of series){const arr=historyCsv[spec.index];if(!Array.isArray(arr))continue;if(arr.length%2!==0)throw Error('Malformed Keepa history array at type '+spec.index+'.');for(let i=0;i<arr.length;i+=2){const t=Number(arr[i]),v=Number(arr[i+1]);if(!Number.isFinite(t)||!Number.isFinite(v)||v<0||(spec.positive&&v===0))continue;const ms=(t+21564000)*60000;if(!Number.isFinite(ms))continue;const date=new Date(ms);if(Number.isNaN(date.getTime()))continue;const key=String(t);if(!byTime.has(key))byTime.set(key,{date:date.toISOString().slice(0,10),price:null,rank:null,offers:null,source:'Keepa API JSON · Amazon.com'});byTime.get(key)[spec.key]=v/spec.scale;imported++}}const rows=Array.from(byTime.values()).filter(p=>p.price!==null||p.rank!==null||p.offers!==null).sort((a,b)=>a.date.localeCompare(b.date));if(!rows.length&&!Array.isArray(product.offers))throw Error('No usable USED, SALES, or COUNT_USED history values or seller-level offers were found.');return rows}
 $('importKeepaJson').onclick=async()=>{const r=historyBook(),file=$('keepaJson').files[0];if(!r){$('keepaImportStatus').textContent='Select a saved book first.';return}if(!file){$('keepaImportStatus').textContent='Choose a Keepa JSON file first.';return}try{if(!/^[A-Z0-9]{10}$/i.test(r.asin||''))throw Error('The selected book needs a verified 10-character ASIN before Keepa data can be imported.');if(file.size>20*1024*1024)throw Error('Keepa JSON files must be 20 MB or smaller.');const raw=JSON.parse(await file.text()),rows=parseKeepaProductJSON(raw,r.asin),offerSnapshot=parseKeepaOfferSnapshot(raw,r.asin),lastSalesSignal=extractKeepaLastSalesSignal(raw,r.asin);r.lastSalesSignal=lastSalesSignal;r.history=Array.isArray(r.history)?r.history:[];let added=0,duplicates=0;rows.forEach(p=>{if(r.history.some(old=>old.date===p.date&&old.price===p.price&&old.rank===p.rank&&old.offers===p.offers&&old.source===p.source)){duplicates++;return}r.history.push({...p,id:Date.now().toString()+Math.random().toString(36).slice(2,8)});added++});if(offerSnapshot)r.keepaOfferSnapshot=offerSnapshot;persist();$('keepaImportStatus').textContent='Imported '+(added?added+' new dated history snapshots':'no new dated history snapshots')+(duplicates?', skipped '+duplicates+' duplicates':'')+(offerSnapshot?' and '+offerSnapshot.offers.length+' seller-level offer records':' (no seller-level offers were included in this JSON file)')+' for '+r.title+'.'}catch(e){$('keepaImportStatus').textContent='Keepa import failed: '+e.message}};
+$('analyzeScoutKeepaBtn').onclick=async()=>{
+ const title=$('title').value.trim(),author=$('author').value.trim(),edition=$('edition').value.trim(),asin=String($('asin').value||'').trim().toUpperCase(),file=$('scoutKeepaJson').files[0],status=$('scoutKeepaStatus');
+ try{
+  if(!title||!author||!edition)throw Error('Enter the exact title, author and edition/binding first.');
+  if(!/^[A-Z0-9]{10}$/.test(asin))throw Error('Enter and verify the exact 10-character Amazon ASIN first.');
+  if(!file)throw Error('Choose your Keepa Product API JSON file first.');
+  if(file.size>20*1024*1024)throw Error('Keepa JSON files must be 20 MB or smaller.');
+  const raw=JSON.parse(await file.text()),signal=extractKeepaLastSalesSignal(raw,asin);
+  if(String(signal.asin||'').toUpperCase()!==asin)throw Error('The Keepa JSON ASIN does not match the ASIN entered in Book Scout.');
+  scoutKeepaSignal=signal;renderScoutLastSale();
+  status.textContent='Keepa file analyzed for '+title+'. This result is available in the current Book Scout session; use Research History separately if you want to keep a permanent record.';
+ }catch(error){scoutKeepaSignal=null;$('lastSaleResult').textContent='Could not analyze Keepa data: '+error.message;status.textContent='';}
+};
 $('checkLastSaleBtn').onclick=renderScoutLastSale;
 $('openLastSaleHistoryBtn').onclick=()=>{const asin=String($('asin').value||'').trim().toUpperCase(),book=records.find(r=>String(r.asin||'').toUpperCase()===asin);if(!book){$('lastSaleResult').textContent='Save the exact book record first, including its verified ASIN.';return}historySelectedId=book.id;$('historyBook').value=book.id;renderHistory();showTab('keepa')};
 ['title','author','edition','asin'].forEach(id=>$(id).addEventListener('input',renderScoutLastSale));
