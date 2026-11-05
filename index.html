@@ -431,13 +431,13 @@ $('aiPhotoInput').addEventListener('change',async event=>{
 $('clearAIPhotos').onclick=()=>{aiPhotos=[];renderAIPhotos();$('aiStatus').textContent='Photos removed from this page.'};
 $('clearAIResults').onclick=()=>{aiDetectedISBN='';$('aiOcrText').value='';$('aiPromptOutput').value='';$('aiOcrResults').replaceChildren();$('aiOcrResults').style.display='none';$('useOcrISBN').disabled=true;$('aiStatus').textContent='Scan results cleared.'};
 function findISBNInText(value){
- const candidates=String(value||'').match(/(?:97[89][\\s-]?)?\\d[\\d\\s-]{8,16}[\\dXx]/g)||[];
+ const candidates=String(value||'').match(/(?:97[89][\s-]?)?\d[\d\s-]{8,16}[\dXx]/g)||[];
  for(const candidate of candidates){const cleaned=isbnClean(candidate);if(isbnValid(cleaned))return cleaned}
  return '';
 }
 function makeBookPrompt(){
  const notes=$('aiOcrText').value.trim();
- return 'Help me identify and evaluate this physical book for Amazon resale. I will attach photos of the actual book. Use the photos and OCR notes below. Distinguish visible facts from guesses. Do not invent an ISBN, ASIN, edition, price, sales rank, eligibility or profit. Help me confirm the exact binding/edition, identify what details to compare with the Amazon listing, and give me a concise sourcing checklist.\\n\\nOCR notes from BookFlip (may contain recognition errors):\\n'+(notes||'No readable text was extracted.');
+ return 'Help me identify and evaluate this physical book for Amazon resale. I will attach photos of the actual book. Use the photos and OCR notes below. Distinguish visible facts from guesses. Do not invent an ISBN, ASIN, edition, price, sales rank, eligibility or profit. Help me confirm the exact binding/edition, identify what details to compare with the Amazon listing, and give me a concise sourcing checklist.\n\nOCR notes from BookFlip (may contain recognition errors):\n'+(notes||'No readable text was extracted.');
 }
 $('scanBookPhotos').onclick=async()=>{
  if(!aiPhotos.length){$('aiStatus').textContent='Add at least one photo first.';return}
