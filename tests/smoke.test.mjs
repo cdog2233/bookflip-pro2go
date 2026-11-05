@@ -186,8 +186,11 @@ test("Photo OCR accepts valid ISBNs and rejects bad check digits", () => {
 });
 
 test("Free photo scanner prepares a clear ChatGPT prompt from OCR notes", () => {
-  const promptFn = new Function("$", section("function makeBookPrompt", "$('scanBookPhotos').onclick=") + "return makeBookPrompt;")(
-    id => ({ value: id === "aiOcrText" ? "Sample title\nISBN 9780306406157" : "" })
+  const isbnFns = new Function(section("function isbnClean", "function calc") + "return {isbnClean,isbnValid};")();
+  const promptSource = section("function findISBNInText", "function makeBookPrompt") + section("function makeBookPrompt", "$('scanBookPhotos').onclick=");
+  const promptFn = new Function("$", "isbnClean", "isbnValid", promptSource + "return makeBookPrompt;")(
+    id => ({ value: id === "aiOcrText" ? "Sample title\nISBN 9780306406157" : "" }),
+    isbnFns.isbnClean, isbnFns.isbnValid
   );
   const prompt = promptFn();
   assert.match(prompt, /Amazon resale/);
@@ -598,7 +601,8 @@ test("Book Scout can analyze Keepa JSON directly without saving the book or usin
 });
 
 test("Photo Scanner keeps valid ISBNs but filters barcode noise and unrelated numeric OCR",()=>{
- const scanner=new Function(section("function findISBNInText","function makeBookPrompt"),"return {findISBNInText,cleanBookOCR};")();
+ const isbnFns=new Function(section("function isbnClean","function calc")+"return {isbnClean,isbnValid};")();
+ const scanner=new Function("isbnClean","isbnValid",section("function findISBNInText","function makeBookPrompt")+"return {findISBNInText,cleanBookOCR};")(isbnFns.isbnClean,isbnFns.isbnValid);
  const raw="THE GREAT GATSBY\nF. SCOTT FITZGERALD\nISBN 978-0-306-40615-7\n9780306406157 12345678901234567890\nCopyright 2020\nRandom barcode 1234567890123456";
  assert.equal(scanner.findISBNInText(raw),"9780306406157");
  const notes=scanner.cleanBookOCR(raw);
