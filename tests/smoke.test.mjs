@@ -402,3 +402,31 @@ test("Keepa import requires a verified ASIN and skips duplicate dated snapshots"
   assert.ok(handler.includes("old.date===p.date&&old.price===p.price&&old.rank===p.rank&&old.offers===p.offers&&old.source===p.source"));
   assert.ok(handler.includes("skipped '+duplicates+' duplicates"));
 });
+
+
+test("seller-offer CSV export quotes values, exports used offers only, and marks snapshot status", () => {
+  const handler = section("window.exportKeepaOffers=", "function renderHistory");
+  const records = [{
+    id: "book-1", asin: "B000000000",
+    keepaOfferSnapshot: {
+      retrievedAt: 1760000000000, liveOffersOrder: [0, 1],
+      offers: [
+        { offerId: 1, sellerId: 'SELLER,"A"', condition: 3, isFBA: true, lastSeen: 7665120, offerCSV: [7665120, 2079, 500] },
+        { offerId: 2, sellerId: "NEWSELLER", condition: 1, isFBA: false, offerCSV: [7665120, 2999, 0] }
+      ]
+    }
+  }];
+  let exported;
+  const target = {};
+  const fn = new Function("records", "download", "window", handler + "return window.exportKeepaOffers;")(
+    records, (...args) => { exported = args; }, target
+  );
+  fn("book-1");
+  assert.equal(exported[0], "BookFlip_offers_B000000000.csv");
+  assert.match(exported[1], /snapshot_status/);
+  assert.match(exported[1], /Active in Keepa response/);
+  assert.match(exported[1], /"SELLER,""A"""/);
+  assert.ok(exported[1].includes('"20.79","5.00","25.79"'));
+  assert.doesNotMatch(exported[1], /NEWSELLER/);
+  assert.equal(exported[2], "text/csv");
+});
