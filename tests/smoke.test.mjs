@@ -392,3 +392,13 @@ test("Keepa Worker requests offers only when explicitly enabled and never return
   const responseText = JSON.stringify(await response.json());
   assert.ok(!responseText.includes("private-secret"));
 });
+
+
+test("Keepa import requires a verified ASIN and skips duplicate dated snapshots", () => {
+  const handler = section("$('importKeepaJson').onclick=", "$('exportHistory').onclick=");
+  assert.match(handler, /verified 10-character ASIN/);
+  assert.match(handler, /file\\.size>20\\*1024\\*1024/);
+  assert.match(handler, /duplicates\\+\\+/);
+  assert.match(handler, /old\\.date===p\\.date&&old\\.price===p\\.price&&old\\.rank===p\\.rank&&old\\.offers===p\\.offers&&old\\.source===p\\.source/);
+  assert.match(handler, /skipped '\\+duplicates\\+' duplicates/);
+});
