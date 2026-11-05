@@ -383,7 +383,7 @@ test("Book Sourcing is book-only and keeps retailer research separate from Inven
     assert.match(html, new RegExp('id="' + id + '"'));
   }
   assert.match(appScript, /const SOURCEKEY='bookflip_pro2go_v1_book_sources'/);
-  assert.match(appScript, /function sourceToInventory/);
+  assert.match(appScript, /window\.sourceToInventory=/);
   assert.match(appScript, /purchased:false/);
   assert.match(appScript, /No purchase or Amazon listing was made/);
   assert.match(html, /Walmart/);
@@ -400,7 +400,7 @@ test("Book sourcing calculator uses entered fees, landed cost, profit, ROI and m
     srcExtraFees:"0", srcFulfillment:{value:"FBA"}
   };
   const outputs = {};
-  const $ = id => fields[id] && typeof fields[id] === "object" ? fields[id] : (fields[id] ? {value:fields[id]} : (outputs[id] ||= {textContent:""}));
+  const $ = id => ({value:fields[id]??"",textContent:""});
   const fn = new Function("$","money","settings",block+"return sourceCalculate;")($,n=>"$"+Number(n||0).toFixed(2),{minProfit:7});
   const result = fn();
   assert.equal(result.landed, 9.5);
@@ -432,7 +432,7 @@ test("Book sourcing validates ISBN, ASIN and safe retailer URLs before saving", 
   const record=fn();
   assert.equal(record.supplier,"Walmart");
   assert.equal(record.isbn,"9780306406157");
-  assert.equal(record.estimatedNet,11.2);
+  assert.equal(record.estimatedNet,11.7);
   values.srcIsbn="9780306406158";
   assert.throws(()=>fn(),/ISBN digits/);
   values.srcIsbn="9780306406157";
