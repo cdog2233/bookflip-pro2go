@@ -268,8 +268,8 @@ test("actual purchase and sale records preserve user-entered costs", () => {
 });
 
 test("responsive layout, scanner, flashlight, metadata lookup, and backup controls remain present", () => {
-  assert.match(html, /@media\\(max-width:700px\\)/);
-  assert.match(html, /\\.tablewrap\\{overflow-x:auto\\}/);
+  assert.ok(html.includes("@media(max-width:700px)"));
+  assert.ok(html.includes(".tablewrap{overflow-x:auto}"));
   assert.match(html, /id="scanBtn"/);
   assert.match(appScript, /Html5Qrcode/);
   assert.match(appScript, /flashToggle/);
