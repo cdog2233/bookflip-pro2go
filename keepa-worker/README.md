@@ -71,3 +71,11 @@ Offer retrieval is opt-in because it can cost additional tokens. The response in
 ## Status
 
 Not deployed or connected to the public app. A Cloudflare account, Access configuration, Keepa subscription/key, and a tested endpoint are still required before this can be called live.
+
+## Cloudflare Access and CORS notes
+
+Access-protected cross-origin requests need a valid Access application cookie. Browsers send a preflight `OPTIONS` request for the JSON POST; Cloudflare Access blocks OPTIONS by default unless you configure the Access application's CORS settings. In Zero Trust > Access controls > Applications > your application > Advanced settings > Cross-Origin Resource Sharing, either bypass OPTIONS to the Worker origin (the Worker has a strict origin allowlist and returns the preflight headers) or configure Access to answer preflight with the matching headers.
+
+The eventual browser request must include credentials. GitHub Pages and a separate Worker hostname are cross-site; Safari privacy controls may block third-party Access cookies. A custom domain arrangement that puts the app and API under a compatible same-site boundary may be required before the app can call this endpoint reliably. Test on the actual target iPhone Safari version before enabling it.
+
+CORS is not authentication. Keep the Access JWT verification, restrict the Access allow policy, and configure a Cloudflare rate limit for the endpoint before use.
