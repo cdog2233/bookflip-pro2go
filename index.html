@@ -27,6 +27,48 @@ body{background:#f3f5f7;color:var(--ink)}header{background:linear-gradient(115de
 .tabs{position:sticky;top:70px;z-index:4;background:#f3f5f7;padding:9px 0 13px;gap:8px}.tab{border:1px solid transparent;background:transparent;color:#62716f;padding:11px 15px;border-radius:12px}.tab.active{background:#173d3a;color:#fff;border-color:#173d3a;box-shadow:0 5px 13px #173d3a20}
 .metric,.card{border-radius:18px;box-shadow:0 8px 24px rgba(20,48,48,.045)}.metric{padding:18px;border-top:3px solid #d7e8e4}.metric label{font-weight:650}.metric strong{font-size:28px;letter-spacing:-.8px}.card{padding:20px}.card h2{font-size:17px;letter-spacing:-.2px}.btn{background:#087e78;border-radius:12px;box-shadow:0 4px 10px #087e7815}.btn.secondary{background:#eaf1ef;color:#254a46;box-shadow:none}.btn.danger{background:#fff0ef;box-shadow:none}.field input:focus,.field select:focus,.field textarea:focus{border-color:#087e78;box-shadow:0 0 0 3px #087e7818}.notice{background:#e8f3f0;color:#355a54;border-left:3px solid #087e78}.notice.warn{background:#fff5e6;color:#805612;border-left-color:#d39a35}.result{border-radius:14px;background:#fbfcfb}.pill.buy{background:#e3f5eb;color:#13734e}.pill.review{background:#fff3dc;color:#95600f}.pill.pass{background:#ffeded;color:#aa3f3f}.kpi{background:#f0f5f3;border-radius:12px}.inventory-tools input:focus,.inventory-tools select:focus{outline:2px solid #087e7830;border-color:#087e78}.stage-pill{background:#e4f0ef;color:#245c57}.dash-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:14px;margin-top:14px}.pipeline{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:13px}.pipeline-item{background:#f1f6f4;border-radius:13px;padding:12px 9px;text-align:center}.pipeline-item b{display:block;font-size:22px}.pipeline-item span{font-size:10px;color:var(--muted);font-weight:750;text-transform:uppercase}.quick-link{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid var(--line);font-weight:700}.quick-link:last-child{border:0}.review-card{border:1px solid var(--line);border-radius:16px;padding:15px;margin:11px 0;background:#fff}.review-card-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.review-checks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:13px 0}.review-check{display:flex;align-items:center;gap:8px;padding:10px;background:#f3f7f5;border-radius:10px;font-size:12px;font-weight:650}.review-check input{width:17px;height:17px;accent-color:#087e78}.review-meter{height:7px;border-radius:10px;background:#e7eeeb;overflow:hidden;margin:10px 0}.review-meter span{display:block;height:100%;background:#16835d;border-radius:10px}footer{padding:30px 10px}
 @media(max-width:700px){.topline{padding:20px 17px;border-radius:18px}.tabs{top:64px}.dash-grid{grid-template-columns:1fr}.pipeline{grid-template-columns:repeat(3,1fr)}.review-checks{grid-template-columns:1fr 1fr}.card{padding:16px}}
+
+/* User-customizable appearance layer */
+:root{--bg:#f3f5f7;--panel:#fff;--ink:#18232d;--muted:#687783;--line:#e2e8e9;--navy:#102b2b;--blue:#087e78;--blue2:#e4f4f1;--accent:#087e78;--header:#102b2b;--radius-card:18px;--radius-control:12px}
+body{background:var(--bg)!important;color:var(--ink)!important;font-size:var(--app-font-size,15px)}
+header{background:linear-gradient(115deg,var(--header),color-mix(in srgb,var(--header) 76%,#ffffff))!important}
+.mark,.btn:not(.secondary):not(.danger){background:var(--accent)!important}
+.topline{background:linear-gradient(115deg,var(--header),color-mix(in srgb,var(--header) 72%,var(--accent)))!important}
+.topline .eyebrow{color:color-mix(in srgb,var(--accent) 48%,#ffffff)!important}
+.tabs{background:var(--bg)!important}
+.tab.active{background:var(--accent)!important;border-color:var(--accent)!important}
+.eyebrow{color:var(--accent)!important}
+.metric,.card,.review-card{background:var(--panel)!important;color:var(--ink)!important;border-color:var(--line)!important;border-radius:var(--radius-card)!important}
+.result,.detail-box,.review-check,.kpi,.pipeline-item{background:color-mix(in srgb,var(--panel) 90%,var(--bg))!important;color:var(--ink)!important;border-color:var(--line)!important}
+.field input,.field select,.field textarea,.inventory-tools input,.inventory-tools select{background:var(--panel)!important;color:var(--ink)!important;border-color:var(--line)!important;border-radius:var(--radius-control)!important}
+.field label,th,.metric label,.metric small,.muted,.sub{color:var(--muted)!important}
+.btn,.tab,.field input:focus,.field select:focus,.field textarea:focus,.inventory-tools input:focus,.inventory-tools select:focus{--blue:var(--accent)}
+.btn{border-radius:var(--radius-control)!important}
+.btn.secondary{background:color-mix(in srgb,var(--accent) 11%,var(--panel))!important;color:var(--ink)!important}
+.tab{border-radius:var(--radius-control)!important}
+.pill.buy,.pill.review,.pill.pass,.notice,.notice.warn{color:inherit}
+.appearance-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+.appearance-heading h2{font-size:20px!important;margin:4px 0 6px!important}
+.appearance-heading p{max-width:650px}
+.appearance-mark{width:42px;height:42px;border-radius:14px;background:color-mix(in srgb,var(--accent) 13%,var(--panel));color:var(--accent);display:grid;place-items:center;font-size:22px;flex:none}
+.appearance-colors{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 16px}
+.color-control{display:flex;align-items:center;gap:10px;min-height:43px;border:1px solid var(--line);border-radius:var(--radius-control);padding:6px 10px;background:var(--panel)}
+.color-control input[type=color]{width:38px;height:30px;padding:0;border:0;background:transparent;cursor:pointer;flex:none}
+.color-control span{font-size:11px;color:var(--muted)}
+.appearance-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 16px;margin-top:10px}
+.appearance-footer{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:14px;margin-top:6px}
+body[data-density="compact"] .card{padding:14px!important;margin-bottom:10px}
+body[data-density="compact"] .metric{padding:12px!important}
+body[data-density="compact"] .field{margin-bottom:8px}
+body[data-density="compact"] .tabs{gap:5px}
+body[data-density="compact"] .tab{padding:8px 11px}
+body[data-corners="round"]{--radius-card:26px;--radius-control:18px}
+body[data-corners="square"]{--radius-card:8px;--radius-control:7px}
+body[data-font="rounded"]{font-family:ui-rounded,"SF Pro Rounded",system-ui,sans-serif}
+body[data-font="serif"]{font-family:Georgia,"Times New Roman",serif}
+body[data-card-style="flat"] .card,body[data-card-style="flat"] .metric{box-shadow:none!important}
+body[data-card-style="elevated"] .card,body[data-card-style="elevated"] .metric{box-shadow:0 10px 28px color-mix(in srgb,var(--ink) 8%,transparent)!important}
+@media(max-width:560px){.appearance-colors,.appearance-options{grid-template-columns:1fr}.appearance-heading h2{font-size:18px!important}}
 </style>
 </head>
 <body>
@@ -95,6 +137,25 @@ body{background:#f3f5f7;color:var(--ink)}header{background:linear-gradient(115de
 <div class="card"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>History & trends</h2><p>Charts use only the saved observations for the selected book.</p></div><button class="btn secondary small" id="exportHistory" type="button">Export history CSV</button></div><div id="historyCharts"><div class="empty">Select a book to view its research history.</div></div><div id="historyRows"></div></div>
 <div class="card"><h2>Import historical snapshots</h2><p>Import a normalized CSV with headers <b>date, used_price, sales_rank, used_offers, source</b>. This creates dated observations without changing your book records.</p><div class="field"><label>Choose CSV file</label><input id="historyCsv" type="file" accept=".csv,text/csv"></div><button class="btn secondary" id="importHistory" type="button">Import CSV snapshots</button><div id="importStatus" class="muted" style="margin-top:9px"></div><div class="notice warn">This CSV option uses BookFlip's normalized template; it does not parse Keepa Product Finder exports as historical series.</div></div>
 <div class="card"><h2>Import Keepa API product JSON</h2><p>Import a JSON response saved from Keepa's Product API with history enabled. This reads the product's <code>csv</code> history arrays for USED price, SALES rank, and COUNT_USED offer count. Amazon.com (domain ID 1) is supported.</p><div class="field"><label>Choose Keepa API JSON file</label><input id="keepaJson" type="file" accept=".json,application/json"></div><button class="btn secondary" id="importKeepaJson" type="button">Import Keepa history</button><div id="keepaImportStatus" class="muted" style="margin-top:9px"></div><div class="notice warn">This imports a file you provide; it does not call Keepa or retrieve live data. Keepa Time is converted to dates. Unavailable negative prices/ranks are skipped, while zero used-offer counts are retained.</div></div></section><section class="view" id="settings">
+<div class="card appearance-card">
+ <div class="appearance-heading"><div><div class="eyebrow">Make it yours</div><h2>Appearance &amp; themes</h2><p>Personalize the colors, typography and feel of your workspace. Changes preview immediately and save automatically on this device.</p></div><span class="appearance-mark">✦</span></div>
+ <div class="field"><label for="appearancePreset">Start with a theme</label><select id="appearancePreset"><option value="evergreen">Evergreen · Original</option><option value="midnight">Midnight · Dark</option><option value="ocean">Ocean · Blue</option><option value="violet">Violet · Modern</option><option value="rose">Rose · Warm</option><option value="sand">Sand · Minimal</option><option value="custom">Custom colors</option></select></div>
+ <div class="appearance-colors">
+  <div class="field"><label for="appearanceAccent">Accent color</label><div class="color-control"><input id="appearanceAccent" type="color" value="#087e78"><span>Buttons, highlights and active tabs</span></div></div>
+  <div class="field"><label for="appearanceBackground">Page background</label><div class="color-control"><input id="appearanceBackground" type="color" value="#f3f5f7"><span>Main workspace background</span></div></div>
+  <div class="field"><label for="appearanceSurface">Cards &amp; panels</label><div class="color-control"><input id="appearanceSurface" type="color" value="#ffffff"><span>Cards, fields and content panels</span></div></div>
+  <div class="field"><label for="appearanceText">Main text</label><div class="color-control"><input id="appearanceText" type="color" value="#18232d"><span>Headings and primary text</span></div></div>
+  <div class="field"><label for="appearanceHeader">Header color</label><div class="color-control"><input id="appearanceHeader" type="color" value="#102b2b"><span>Top navigation and hero banner</span></div></div>
+ </div>
+ <div class="appearance-options">
+  <div class="field"><label for="appearanceFont">Typography</label><select id="appearanceFont"><option value="system">System · Clean</option><option value="rounded">Rounded · Friendly</option><option value="serif">Serif · Editorial</option></select></div>
+  <div class="field"><label for="appearanceSize">Text size</label><select id="appearanceSize"><option value="14">Small</option><option value="15">Default</option><option value="16">Large</option><option value="17">Extra large</option></select></div>
+  <div class="field"><label for="appearanceDensity">Layout spacing</label><select id="appearanceDensity"><option value="comfortable">Comfortable</option><option value="compact">Compact</option></select></div>
+  <div class="field"><label for="appearanceCorners">Corner style</label><select id="appearanceCorners"><option value="soft">Soft &amp; rounded</option><option value="round">Extra rounded</option><option value="square">Crisp &amp; square</option></select></div>
+  <div class="field"><label for="appearanceCards">Card style</label><select id="appearanceCards"><option value="elevated">Elevated</option><option value="flat">Flat</option></select></div>
+ </div>
+ <div class="appearance-footer"><span id="appearanceStatus" class="muted" role="status">Your theme is saved automatically.</span><button class="btn secondary small" id="resetAppearance" type="button">Reset appearance</button></div>
+</div>
 <div class="card"><h2>Decision settings</h2><p>These are screening rules, not guarantees. You can adjust them as you learn your costs.</p><div class="two"><div class="field"><label>Minimum estimated net profit ($)</label><input id="minProfit" type="number" step=".50" value="7"></div><div class="field"><label>Minimum ROI (%)</label><input id="minRoi" type="number" step="5" value="100"></div></div><button class="btn" id="saveSettings">Save settings</button><div id="settingsStatus" class="muted" style="margin-top:8px"></div></div>
 <div class="card"><h2>Inventory workflow</h2><p>Each book has a separate workflow stage (Research, To buy, Purchased, Listed, Sold or Skipped). The BUY / REVIEW / PASS result is only the deal calculator recommendation and does not block you from recording a purchase.</p><p>Use <b>Mark purchased</b> or change the workflow dropdown in Inventory. Purchased cost initially copies your estimated purchase cost; update the cost in a later version if the amount you actually paid differs.</p></div><div class="card"><h2>Backup your records</h2><p>Records are stored in this browser on this device. They do not sync to your other devices yet. Export CSV regularly.</p><div class="row"><button class="btn secondary" id="backupBtn">Download backup JSON</button><label class="btn secondary" for="restoreFile">Restore backup</label><input id="restoreFile" type="file" accept="application/json" hidden></div><div id="backupStatus" class="muted" style="margin-top:9px"></div></div>
 <div class="card"><h2>Integrations</h2><p><b>Keepa:</b> Import Product API JSON history and seller-offer snapshots in Research History. Direct API connection remains optional and is not connected.</p><p><b>Google Books:</b> free metadata lookup, subject to availability and network connection.</p><p><b>Amazon:</b> opens Amazon search in a separate tab. ASIN, live pricing, restrictions and fee data are not automatically verified.</p></div>
@@ -104,6 +165,45 @@ body{background:#f3f5f7;color:var(--ink)}header{background:linear-gradient(115de
 <script>
 const KEY='bookflip_pro2go_v2_records';
 const SETKEY='bookflip_pro2go_v2_settings';
+const APPEARANCE_DEFAULTS={preset:'evergreen',accent:'#087e78',background:'#f3f5f7',surface:'#ffffff',text:'#18232d',header:'#102b2b',font:'system',size:'15',density:'comfortable',corners:'soft',cards:'elevated'};
+const APPEARANCE_THEMES={
+ evergreen:{accent:'#087e78',background:'#f3f5f7',surface:'#ffffff',text:'#18232d',header:'#102b2b'},
+ midnight:{accent:'#55c7b5',background:'#101820',surface:'#1b2833',text:'#edf4f5',header:'#0b121b'},
+ ocean:{accent:'#3478df',background:'#eef4fb',surface:'#ffffff',text:'#17283e',header:'#142c4e'},
+ violet:{accent:'#8865d8',background:'#f4f1fb',surface:'#ffffff',text:'#28223c',header:'#30234e'},
+ rose:{accent:'#d45d83',background:'#fbf1f4',surface:'#ffffff',text:'#38232d',header:'#54283c'},
+ sand:{accent:'#a66b36',background:'#f5f0e7',surface:'#fffdf8',text:'#332d25',header:'#47382a'}
+};
+let appearance={...APPEARANCE_DEFAULTS,...(settings.appearance||{})};
+function applyAppearance(){
+ const root=document.documentElement,body=document.body;
+ const map={accent:'--accent',accentBlue:'--blue',background:'--bg',surface:'--panel',text:'--ink',header:'--header',muted:'--muted'};
+ Object.entries(map).forEach(([key,css])=>{if(appearance[key])root.style.setProperty(css,appearance[key])});
+ root.style.setProperty('--navy',appearance.header||APPEARANCE_DEFAULTS.header);
+ root.style.setProperty('--blue',appearance.accent||APPEARANCE_DEFAULTS.accent);
+ root.style.setProperty('--app-font-size',(Number(appearance.size)||15)+'px');
+ body.dataset.font=appearance.font||'system';body.dataset.density=appearance.density||'comfortable';body.dataset.corners=appearance.corners||'soft';body.dataset.cardStyle=appearance.cards||'elevated';
+ const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.content=appearance.header||APPEARANCE_DEFAULTS.header;
+}
+function saveAppearance(){
+ settings.appearance={...appearance};localStorage.setItem(SETKEY,JSON.stringify(settings));applyAppearance();
+ const status=$('appearanceStatus');if(status)status.textContent='Saved automatically on this device.';
+}
+function syncAppearanceControls(){
+ const ids={appearanceAccent:'accent',appearanceBackground:'background',appearanceSurface:'surface',appearanceText:'text',appearanceHeader:'header',appearanceFont:'font',appearanceSize:'size',appearanceDensity:'density',appearanceCorners:'corners',appearanceCards:'cards'};
+ Object.entries(ids).forEach(([id,key])=>{const el=$(id);if(el)el.value=appearance[key]??APPEARANCE_DEFAULTS[key]});
+ $('appearancePreset').value=appearance.preset||'custom';
+}
+function bindAppearanceControls(){
+ syncAppearanceControls();
+ $('appearancePreset').onchange=()=>{const preset=$('appearancePreset').value;if(APPEARANCE_THEMES[preset])appearance={...appearance,...APPEARANCE_THEMES[preset],preset};else appearance.preset='custom';syncAppearanceControls();saveAppearance()};
+ const colors={appearanceAccent:'accent',appearanceBackground:'background',appearanceSurface:'surface',appearanceText:'text',appearanceHeader:'header'};
+ Object.entries(colors).forEach(([id,key])=>$(id).oninput=()=>{appearance[key]=$(id).value;appearance.preset='custom';$('appearancePreset').value='custom';saveAppearance()});
+ const options={appearanceFont:'font',appearanceSize:'size',appearanceDensity:'density',appearanceCorners:'corners',appearanceCards:'cards'};
+ Object.entries(options).forEach(([id,key])=>$(id).onchange=()=>{appearance[key]=$(id).value;saveAppearance()});
+ $('resetAppearance').onclick=()=>{appearance={...APPEARANCE_DEFAULTS};syncAppearanceControls();saveAppearance();$('appearanceStatus').textContent='Original appearance restored.'};
+}
+
 let records=[]; let settings={minProfit:7,minRoi:100};let editingRecordId=null;
 try{records=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){records=[]}
 try{settings={...settings,...JSON.parse(localStorage.getItem(SETKEY)||'{}')}}catch(e){}
@@ -210,7 +310,7 @@ function parseKeepaProductJSON(raw,expectedAsin){const parsed=typeof raw==='stri
 $('importKeepaJson').onclick=async()=>{const r=historyBook(),file=$('keepaJson').files[0];if(!r){$('keepaImportStatus').textContent='Select a saved book first.';return}if(!file){$('keepaImportStatus').textContent='Choose a Keepa JSON file first.';return}try{if(!/^[A-Z0-9]{10}$/i.test(r.asin||''))throw Error('The selected book needs a verified 10-character ASIN before Keepa data can be imported.');if(file.size>20*1024*1024)throw Error('Keepa JSON files must be 20 MB or smaller.');const raw=JSON.parse(await file.text()),rows=parseKeepaProductJSON(raw,r.asin),offerSnapshot=parseKeepaOfferSnapshot(raw,r.asin);r.history=Array.isArray(r.history)?r.history:[];let added=0,duplicates=0;rows.forEach(p=>{if(r.history.some(old=>old.date===p.date&&old.price===p.price&&old.rank===p.rank&&old.offers===p.offers&&old.source===p.source)){duplicates++;return}r.history.push({...p,id:Date.now().toString()+Math.random().toString(36).slice(2,8)});added++});if(offerSnapshot)r.keepaOfferSnapshot=offerSnapshot;persist();refreshHistoryBooks();$('keepaImportStatus').textContent='Imported '+(added?added+' new dated history snapshots':'no new dated history snapshots')+(duplicates?', skipped '+duplicates+' duplicates':'')+(offerSnapshot?' and '+offerSnapshot.offers.length+' seller-level offer records':' (no seller-level offers were included in this JSON file)')+' for '+r.title+'.'}catch(e){$('keepaImportStatus').textContent='Keepa import failed: '+e.message}};
 $('exportHistory').onclick=()=>{const r=historyBook();if(!r){$('snapshotStatus').textContent='Select a saved book first.';return}const cols=['date','used_price','sales_rank','used_offers','source'],rows=(r.history||[]).map(p=>[p.date,p.price??'',p.rank??'',p.offers??'',p.source||''].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(','));download('BookFlip_history_'+(r.asin||r.isbn||'book')+'.csv',[cols.join(','),...rows].join('\n'),'text/csv')};
 
-function init(){if(records.length&&records[0].title===undefined){/* preserve older local records */}records.forEach(r=>{if(!r.reviewChecks)r.reviewChecks={edition:false,amazonMatch:false,eligibility:false,price:false,condition:false,fulfillment:false};if(!r.reviewState)r.reviewState='NEEDS_REVIEW';if(!r.fulfillment)r.fulfillment='FBA'});render();calc();refreshHistoryBooks();$("snapDate").value=historyLocalDate()}
+function init(){applyAppearance();bindAppearanceControls();if(records.length&&records[0].title===undefined){/* preserve older local records */}records.forEach(r=>{if(!r.reviewChecks)r.reviewChecks={edition:false,amazonMatch:false,eligibility:false,price:false,condition:false,fulfillment:false};if(!r.reviewState)r.reviewState='NEEDS_REVIEW';if(!r.fulfillment)r.fulfillment='FBA'});render();calc();refreshHistoryBooks();$("snapDate").value=historyLocalDate()}
 init();
 </script>
 </body></html>

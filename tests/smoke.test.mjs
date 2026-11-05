@@ -430,3 +430,26 @@ test("seller-offer CSV export quotes values, exports used offers only, and marks
   assert.doesNotMatch(exported[1], /NEWSELLER/);
   assert.equal(exported[2], "text/csv");
 });
+
+test("appearance presets, custom color controls, and layout preferences are wired without touching book records", () => {
+  assert.match(html, /id="appearancePreset"/);
+  for (const id of ["appearanceAccent","appearanceBackground","appearanceSurface","appearanceText","appearanceHeader","appearanceFont","appearanceSize","appearanceDensity","appearanceCorners","appearanceCards","resetAppearance"]) {
+    assert.match(html, new RegExp('id="' + id + '"'));
+  }
+  assert.match(appScript, /const APPEARANCE_THEMES=/);
+  assert.match(appScript, /function applyAppearance\(/);
+  assert.match(appScript, /function saveAppearance\(/);
+  assert.match(appScript, /settings\.appearance=\{\.\.\.appearance\}/);
+  assert.match(appScript, /function bindAppearanceControls\(/);
+  assert.match(appScript, /applyAppearance\(\);bindAppearanceControls\(\)/);
+  assert.match(html, /body\[data-density="compact"\]/);
+  assert.match(html, /body\[data-corners="round"\]/);
+  assert.match(html, /body\[data-card-style="flat"\]/);
+});
+test("appearance theme selection applies preset colors and custom edits switch to Custom", () => {
+  const block=section("function bindAppearanceControls()", "function isbnClean");
+  assert.match(block, /appearance\.preset='custom'/);
+  assert.match(block, /APPEARANCE_THEMES\[preset\]/);
+  assert.match(block, /localStorage\.setItem\(SETKEY,JSON\.stringify\(settings\)\)/);
+  assert.match(block, /appearance=\{\.\.\.APPEARANCE_DEFAULTS\}/);
+});
