@@ -439,3 +439,118 @@ test("Book sourcing validates ISBN, ASIN and safe retailer URLs before saving", 
   values.srcUrl="javascript:alert(1)";
   assert.throws(()=>fn(),/must start with https/);
 });
+
+
+test("manual research snapshots persist valid zero offers and reject invalid ranks or fractional counts", () => {
+  const handler = section("$('addSnapshot').onclick=", "function parseHistoryCSV");
+  const fields = {
+    snapPrice:{value:""}, snapRank:{value:""}, snapOffers:{value:"0"},
+    snapDate:{value:"2026-11-05"}, snapSource:{value:""},
+    snapshotStatus:{textContent:""}
+  };
+  const book = { id:"book-1", title:"History Test", history:[] };
+  let saves = 0;
+  const $ = id => fields[id] || (fields[id] = {value:""});
+  const run = new Function("$","historyBook","historyLocalDate","persist",handler+";return $('addSnapshot').onclick;")($,()=>book,()=>"2026-11-05",()=>saves++);
+  run();
+  assert.equal(book.history.length,1);
+  assert.equal(book.history[0].offers,0);
+  assert.equal(book.history[0].source,"Manual observation");
+  assert.equal(saves,1);
+
+  fields.snapRank.value="0"; fields.snapOffers.value="";
+  run();
+  assert.equal(book.history.length,1);
+  assert.match(fields.snapshotStatus.textContent,/positive whole number/);
+
+  fields.snapRank.value=""; fields.snapOffers.value="1.5";
+  run();
+  assert.equal(book.history.length,1);
+  assert.match(fields.snapshotStatus.textContent,/whole number of zero or more/);
+});
+
+test("history CSV requires real dates and whole-number rank and offer counts", () => {
+  assert.throws(()=>helpers.parseHistoryCSV(["date,used_offers"," ,0"].join("\n")),/Missing date/);
+  assert.throws(()=>helpers.parseHistoryCSV(["date,sales_rank","2026-11-05,12.5"].join("\n")),/positive whole number/);
+  assert.throws(()=>helpers.parseHistoryCSV(["date,used_offers","2026-11-05,1.5"].join("\n")),/whole number/);
+  const rows=helpers.parseHistoryCSV(["date,used_price,sales_rank,used_offers","2026-11-05,0,1,0"].join("\n"));
+  assert.equal(rows[0].offers,0);
+  assert.equal(rows[0].rank,1);
+  assert.equal(rows[0].price,0);
+});
+
+test("price and sales-rank charts include date boundaries and explain rank direction", () => {
+  const price=helpers.historyChart("Used price",[
+    {date:"2026-11-01",price:12.5},{date:"2026-11-05",price:14}
+  ],"price","#087e78");
+  const rank=helpers.historyChart("Sales rank",[
+    {date:"2026-11-01",rank:50000},{date:"2026-11-05",rank:40000}
+  ],"rank","#bd8a32");
+  assert.match(price,/From 2026-11-01 to 2026-11-05/);
+  assert.match(price,/latest \$14\.00/);
+  assert.match(rank,/Lower rank is better/);
+  assert.match(rank,/From 2026-11-01 to 2026-11-05/);
+});
+
+test("history CSV export round-trips source text and zero offers", () => {
+  const handler=section("$('exportHistory').onclick=","// Free Book Photo Scanner");
+  const book={asin:"B000000000",history:[{date:"2026-11-05",price:10.25,rank:12345,offers:0,source:'Amazon, "used" page'}]};
+  let saved=null;
+  const $=()=>({textContent:""});
+  const run=new Function("$","historyBook","download",handler+";return $('exportHistory').onclick;")($,()=>book,(...args)=>saved=args);
+  run();
+  assert.equal(saved[0],"BookFlip_history_B000000000.csv");
+  assert.equal(saved[2],"text/csv");
+  const rows=helpers.parseHistoryCSV(saved[1]);
+  assert.equal(rows[0].offers,0);
+  assert.equal(rows[0].source,'Amazon, "used" page');
+});
+
+test("deleting a research snapshot removes only the selected observation and persists", () => {
+  const handler=section("window.deleteHistorySnapshot=","$('historyBook').addEventListener");
+  const records=[{id:"book-1",history:[{id:"keep"},{id:"delete"}]}];
+  let saves=0;
+  const win={};
+  const remove=new Function("records","persist","window",handler+";return window.deleteHistorySnapshot;")(records,()=>saves++,win);
+  remove("book-1","delete");
+  assert.deepEqual(records[0].history,[{id:"keep"}]);
+  assert.equal(saves,1);
+});
+
+test("record persistence writes saved history and refreshes dependent views", () => {
+  const block=section("function persist(){","function showTab");
+  const records=[{id:"book-1",history:[{date:"2026-11-05",offers:0}]}];
+  let stored=null,renders=0,refreshes=0;
+  const storage={setItem:(key,value)=>{stored={key,value}}};
+  const persist=new Function("localStorage","KEY","records","render","refreshHistoryBooks",block+";return persist;")(
+    storage,"bookflip_records",records,()=>renders++,()=>refreshes++
+  );
+  persist();
+  assert.equal(stored.key,"bookflip_records");
+  assert.deepEqual(JSON.parse(stored.value),records);
+  assert.equal(renders,1);
+  assert.equal(refreshes,1);
+});
+
+test("Research History remains usable on narrow screens with horizontally scrollable tables", () => {
+  assert.match(html,/\.tablewrap\{overflow-x:auto\}/);
+  assert.match(html,/@media\(max-width:700px\)[\s\S]*?\.two\{grid-template-columns:1fr\}/);
+  assert.match(html,/svg[^>]*style="width:100%;min-width:280px;height:auto"/);
+  assert.match(html,/id="historyBook"/);
+  assert.match(html,/id="historyCsv"/);
+  assert.match(html,/id="keepaJson"/);
+});
+
+test("Keepa API imports require explicit Amazon.com domain IDs for both history and offer snapshots", () => {
+  assert.throws(()=>helpers.parseKeepaProductJSON({products:[{
+    asin:"B000000000",csv:[[],[],[100000,1200]]
+  }]},"B000000000"),/domainId 1/);
+  assert.throws(()=>helpers.parseKeepaOfferSnapshot({products:[{
+    asin:"B000000000",offers:[]
+  }]},"B000000000"),/domainId 1/);
+});
+
+test("browser app never contains or stores a shared Keepa API key", () => {
+  assert.doesNotMatch(appScript,/KEEPA_API_KEY|api\.keepa\.com/);
+  assert.match(appScript,/Official Keepa Product Object format/);
+});
