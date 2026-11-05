@@ -153,7 +153,7 @@ body[data-card-style="elevated"] .card,body[data-card-style="elevated"] .metric{
  <div class="row"><button class="btn" id="scanBookPhotos" type="button">Read photos & find ISBN</button><span id="aiStatus" class="muted" role="status">Add photos to begin.</span></div>
  <div id="aiOcrResults" class="result" style="display:none;margin-top:14px"></div>
  <div class="field" style="margin-top:14px"><label for="aiOcrText">Text read from your photos (you can correct it)</label><textarea id="aiOcrText" rows="7" placeholder="Detected cover text and ISBN details will appear here. You can edit the text before asking ChatGPT." ></textarea></div>
- <div class="row"><button class="btn secondary" id="useOcrISBN" type="button" disabled>Use detected ISBN in Book Scout</button><button class="btn" id="askChatGPT" type="button">Copy notes & open ChatGPT</button></div>
+ <div class="row"><button class="btn secondary" id="findOcrISBN" type="button">Find ISBN in notes</button><button class="btn secondary" id="useOcrISBN" type="button" disabled>Use ISBN in Book Scout</button><button class="btn" id="askChatGPT" type="button">Copy notes & open ChatGPT</button></div>
  <div class="notice" style="margin-top:12px">Free AI option: ChatGPT can help interpret the actual photos using your available ChatGPT usage. Tap the button above, then attach the same book photos in ChatGPT. BookFlip copies the OCR notes and a ready-made sourcing prompt; it does not automatically transfer your photos or bypass ChatGPT usage limits.</div>
  <div class="field"><label for="aiPromptOutput">Prompt and scan notes (copy manually if needed)</label><textarea id="aiPromptOutput" rows="5" readonly placeholder="Your prompt will appear here after scanning."></textarea></div>
 </div>
@@ -549,13 +549,36 @@ $('aiPhotoInput').addEventListener('change',async event=>{
 $('clearAIPhotos').onclick=()=>{aiPhotos=[];renderAIPhotos();$('aiStatus').textContent='Photos removed from this page.'};
 $('clearAIResults').onclick=()=>{aiDetectedISBN='';$('aiOcrText').value='';$('aiPromptOutput').value='';$('aiOcrResults').replaceChildren();$('aiOcrResults').style.display='none';$('useOcrISBN').disabled=true;$('aiStatus').textContent='Scan results cleared.'};
 function findISBNInText(value){
- const candidates=String(value||'').match(/(?:97[89][\s-]?)?\d[\d\s-]{8,16}[\dXx]/g)||[];
+ const source=String(value||''),candidates=[];
+ const labelled=source.match(/(?:ISBN(?:-1[03])?\s*[:#]?\s*)([0-9Xx][0-9Xx\s-]{7,22})/gi)||[];
+ for(const item of labelled)candidates.push(item.replace(/^.*?ISBN(?:-1[03])?\s*[:#]?\s*/i,''));
+ const broad=source.match(/(?:97[89][\s-]*[0-9][0-9\s-]{8,18}[0-9]|[0-9][0-9\s-]{7,17}[0-9Xx])/g)||[];
+ candidates.push(...broad);
  for(const candidate of candidates){const cleaned=isbnClean(candidate);if(isbnValid(cleaned))return cleaned}
  return '';
 }
+function cleanBookOCR(value){
+ const raw=String(value||''),isbn=findISBNInText(raw),seen=new Set(),lines=[];
+ for(let line of raw.split(/\r?\n/)){
+  line=line.replace(/^\s*PHOTO\s+\d+\s*:\s*/i,'').replace(/\s+/g,' ').trim();
+  if(!line||/^photo\s+\d+$/i.test(line))continue;
+  if(isbn){
+   line=line.replace(/ISBN(?:-1[03])?\s*[:#]?\s*[0-9Xx][0-9Xx\s-]{7,22}/ig,' ');
+   line=line.replace(/(?:97[89][\s-]*[0-9][0-9\s-]{8,18}[0-9]|[0-9][0-9\s-]{7,17}[0-9Xx])/g,' ');
+   line=line.replace(/\s+/g,' ').trim();
+  }
+  if(!line)continue;
+  const letters=(line.match(/[A-Za-z]/g)||[]).length,digits=(line.match(/[0-9]/g)||[]).length;
+  if(letters<3||digits>=8||line.length>140||letters/(letters+digits||1)<0.45)continue;
+  const normalized=line.toLowerCase();if(seen.has(normalized))continue;
+  seen.add(normalized);lines.push(line);
+ }
+ if(isbn)lines.unshift('ISBN: '+isbn);
+ return lines.slice(0,18).join('\n').slice(0,1400);
+}
 function makeBookPrompt(){
- const notes=$('aiOcrText').value.trim();
- return 'Help me identify and evaluate this physical book for Amazon resale. I will attach photos of the actual book. Use the photos and OCR notes below. Distinguish visible facts from guesses. Do not invent an ISBN, ASIN, edition, price, sales rank, eligibility or profit. Help me confirm the exact binding/edition, identify what details to compare with the Amazon listing, and give me a concise sourcing checklist.\n\nOCR notes from BookFlip (may contain recognition errors):\n'+(notes||'No readable text was extracted.');
+ const notes=cleanBookOCR($('aiOcrText').value);
+ return 'Help me identify and evaluate this physical book for Amazon resale. I will attach photos of the actual book. Use the photos and concise OCR notes below. Prioritize the title, author, ISBN, edition/binding, publisher and publication year. Treat OCR notes as clues, not verified facts. Distinguish visible facts from guesses. Do not invent an ISBN, ASIN, edition, price, sales rank, eligibility or profit. Help me confirm the exact binding/edition, identify what details to compare with the Amazon listing, and give me a concise sourcing checklist.\\n\\nRelevant book details read from the photos:\\n'+(notes||'No clear title or book details were extracted; identify them from the attached photos.');
 }
 $('scanBookPhotos').onclick=async()=>{
  if(!aiPhotos.length){$('aiStatus').textContent='Add at least one photo first.';return}
@@ -568,9 +591,10 @@ $('scanBookPhotos').onclick=async()=>{
    const result=await Tesseract.recognize(aiPhotos[i].data,'eng',{logger:message=>{if(message.status==='recognizing text')$('aiStatus').textContent='Reading photo '+(i+1)+' of '+aiPhotos.length+' · '+Math.round((message.progress||0)*100)+'%'}});
    const text=String(result.data&&result.data.text||'').trim();if(text)collected.push('PHOTO '+(i+1)+':\\n'+text);
   }
-  const extracted=collected.join('\\n\\n');
+  const rawExtracted=collected.join('\\n\\n');
+  aiDetectedISBN=findISBNInText(rawExtracted);
+  const extracted=cleanBookOCR(rawExtracted);
   $('aiOcrText').value=extracted;
-  aiDetectedISBN=findISBNInText(extracted);
   const results=$('aiOcrResults');results.replaceChildren();results.style.display='block';
   const heading=document.createElement('h3');heading.textContent=aiDetectedISBN?'Valid ISBN detected':'Photo reading complete';results.append(heading);
   const detail=document.createElement('p');detail.textContent=aiDetectedISBN?'ISBN '+aiDetectedISBN+' passed its checksum. Confirm it matches the physical copy.':'No valid ISBN was confidently read. Try a close, straight-on photo of the barcode or copyright page.';results.append(detail);
@@ -581,9 +605,16 @@ $('scanBookPhotos').onclick=async()=>{
  }catch(error){$('aiStatus').textContent='Photo reading failed: '+(error.message||'Try a clearer photo.')}
  finally{button.disabled=!aiPhotos.length;button.textContent='Read photos & find ISBN'}
 };
+$('findOcrISBN').onclick=()=>{
+ aiDetectedISBN=findISBNInText($('aiOcrText').value);
+ $('useOcrISBN').disabled=!aiDetectedISBN;
+ if(aiDetectedISBN){$('aiStatus').textContent='Valid ISBN found: '+aiDetectedISBN+'. Tap “Use ISBN in Book Scout” to look it up.';}
+ else{$('aiStatus').textContent='No valid ISBN found in the notes. Check the ISBN on the copyright page or barcode photo, then try again.';}
+};
 $('useOcrISBN').onclick=()=>{
- if(!aiDetectedISBN||!isbnValid(aiDetectedISBN))return;
- $('isbn').value=aiDetectedISBN;showTab('research');$('lookupStatus').textContent='ISBN read from your photo. Confirm it matches the book, then review the catalog match.';$('lookupBtn').click();
+ aiDetectedISBN=findISBNInText($('aiOcrText').value)||aiDetectedISBN;
+ if(!aiDetectedISBN||!isbnValid(aiDetectedISBN)){$('useOcrISBN').disabled=true;$('aiStatus').textContent='No valid ISBN is ready. Tap “Find ISBN in notes” after checking the text.';return;}
+ $('isbn').value=aiDetectedISBN;showTab('research');$('lookupStatus').textContent='ISBN '+aiDetectedISBN+' read from your photo. Confirm the catalog match and edition.';$('lookupBtn').click();
 };
 $('askChatGPT').onclick=async()=>{
  const prompt=makeBookPrompt();$('aiPromptOutput').value=prompt;
