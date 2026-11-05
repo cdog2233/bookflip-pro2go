@@ -240,6 +240,12 @@ test("FBA and FBM calculator scenarios use their separate fulfillment costs", ()
   assert.equal(calc().status, "BUY");
 });
 
+test("Amazon Books fee defaults match the current US fee schedule", () => {
+  assert.match(html, /id="referralRate"[^>]*value="15"/);
+  assert.match(html, /id="closingFee"[^>]*value="1\.80"/);
+  assert.match(html, /15% referral \+ \$1\.80 closing fee per item/);
+});
+
 test("actual purchase and sale records preserve user-entered costs", () => {
   const purchaseHandler = section("window.markPurchased=", "window.removeRecord=");
   const purchaseRecords = [{ id: "book-1", cost: 5 }];
