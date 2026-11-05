@@ -35,6 +35,16 @@ const helpers = new Function("historyLocalDate", "historyEsc", "money", [
   value => "$" + Number(value || 0).toFixed(2)
 );
 
+test("ISBN validation accepts valid ISBN-10 and ISBN-13 and rejects bad check digits", () => {
+  const isbn = new Function(section("function isbnClean", "function calc") + "return { isbnClean, isbnValid };")();
+  assert.equal(isbn.isbnClean("978-0-306-40615-7"), "9780306406157");
+  assert.equal(isbn.isbnValid("978-0-306-40615-7"), true);
+  assert.equal(isbn.isbnValid("0-306-40615-2"), true);
+  assert.equal(isbn.isbnValid("9780306406158"), false);
+  assert.equal(isbn.isbnValid("0306406153"), false);
+  assert.equal(isbn.isbnValid("1234567890123"), false);
+});
+
 test("normalized CSV round-trips quoted sources and zero used offers", () => {
   const csv = [
     "date,used_price,sales_rank,used_offers,source",
