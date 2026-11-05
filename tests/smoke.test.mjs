@@ -354,6 +354,35 @@ test("actual sale rejects negative costs and duplicate sale entries", () => {
   assert.match(elements.saleStatus.textContent, /already recorded/);
 });
 
+test("recorded sale can be edited with validated amounts and recalculated profit", () => {
+  const handler = section("window.editSale=", "window.undoSale=");
+  const records = [{ id: "book-1", actualPurchaseCost: 5, shipping: 1, other: 1, sale: { price: 20, fees: 3, costs: 2, profit: 8, date: "2026-01-01" } }];
+  const answers = ["30", "5", "3"];
+  let saved = 0;
+  const fn = new Function("records", "persist", "prompt", "alert", "window", handler + "return window.editSale;")(
+    records, () => saved++, () => answers.shift(), () => {}, {}
+  );
+  fn("book-1");
+  assert.equal(records[0].sale.price, 30);
+  assert.equal(records[0].sale.profit, 15);
+  assert.equal(records[0].sale.date, "2026-01-01");
+  assert.equal(saved, 1);
+});
+
+test("undo sale keeps the book and returns it to Purchased", () => {
+  const handler = section("window.undoSale=", "window.removeRecord=");
+  const records = [{ id: "book-1", purchased: true, stage: "SOLD", sale: { price: 20, profit: 10 }, history: [{ date: "2026-11-05" }] }];
+  let saved = 0;
+  const fn = new Function("records", "persist", "confirm", "window", handler + "return window.undoSale;")(
+    records, () => saved++, () => true, {}
+  );
+  fn("book-1");
+  assert.equal(records[0].sale, null);
+  assert.equal(records[0].stage, "PURCHASED");
+  assert.equal(records[0].history.length, 1);
+  assert.equal(saved, 1);
+});
+
 test("responsive layout, scanner, flashlight, metadata lookup, and backup controls remain present", () => {
   assert.ok(html.includes("@media(max-width:700px)"));
   assert.ok(html.includes(".tablewrap{overflow-x:auto}"));
