@@ -213,7 +213,7 @@ function persist(){localStorage.setItem(KEY,JSON.stringify(records));render();if
 function showTab(name){document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===name));document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));window.scrollTo({top:0,behavior:'smooth'})}
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
 function isbnClean(s){return (s||'').replace(/[^0-9Xx]/g,'').toUpperCase()}
-function isbnValid(value){const s=isbnClean(value);if(/^97[89]\\d{10}$/.test(s)){let sum=0;for(let i=0;i<13;i++)sum+=Number(s[i])*(i%2?3:1);return sum%10===0}if(/^\\d{9}[0-9X]$/.test(s)){let sum=0;for(let i=0;i<10;i++)sum+=(10-i)*(s[i]==='X'?10:Number(s[i]));return sum%11===0}return false}
+function isbnValid(value){const s=isbnClean(value);if(/^97[89]\d{10}$/.test(s)){let sum=0;for(let i=0;i<13;i++)sum+=Number(s[i])*(i%2?3:1);return sum%10===0}if(/^\d{9}[0-9X]$/.test(s)){let sum=0;for(let i=0;i<10;i++)sum+=(10-i)*(s[i]==='X'?10:Number(s[i]));return sum%11===0}return false}
 function calc(){
  let price=val('price'),cost=val('cost'),ship=val('shipping'),other=val('other'),extraFees=val('fees'),referralRate=Math.max(0,val('referralRate'))/100,fbaFee=val('fbaFee'),closingFee=val('closingFee'),fbmShip=val('fbmShip'),fulfillment=$('fulfillment')?.value||'FBA';
  let referral=price*referralRate,common=referral+closingFee+extraFees,base=cost+ship+other;
