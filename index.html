@@ -567,7 +567,7 @@ function cleanBookOCR(value){
    line=line.replace(/(?:97[89][\s-]*[0-9][0-9\s-]{8,18}[0-9]|[0-9][0-9\s-]{7,17}[0-9Xx])/g,' ');
    line=line.replace(/\s+/g,' ').trim();
   }
-  if(!line||/\\b(barcode|qr\\s*code|upc|ean)\\b/i.test(line))continue;
+  if(!line||/\b(barcode|qr\s*code|upc|ean)\b/i.test(line))continue;
   const letters=(line.match(/[A-Za-z]/g)||[]).length,digits=(line.match(/[0-9]/g)||[]).length;
   if(letters<3||digits>=8||line.length>140||letters/(letters+digits||1)<0.45)continue;
   const normalized=line.toLowerCase();if(seen.has(normalized))continue;
