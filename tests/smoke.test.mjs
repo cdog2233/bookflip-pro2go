@@ -583,3 +583,16 @@ test("Keepa sales-rank helper reports no signal instead of inventing a sale",()=
   assert.equal(result.detected,false);
   assert.match(result.reason,/No downward sales-rank movement/);
 });
+
+
+test("Book Scout can analyze Keepa JSON directly without saving the book or using Research History",()=>{
+  for(const id of ["scoutKeepaJson","analyzeScoutKeepaBtn","scoutKeepaStatus"])assert.match(html,new RegExp('id="'+id+'"'));
+  assert.match(html,/No saved Research History record is required/);
+  const handler=section("$('analyzeScoutKeepaBtn').onclick=async()=>{", "$('checkLastSaleBtn').onclick=renderScoutLastSale;");
+  assert.match(handler,/extractKeepaLastSalesSignal\(raw,asin\)/);
+  assert.match(handler,/The Keepa JSON ASIN does not match/);
+  assert.match(handler,/file\.size>20\*1024\*1024/);
+  assert.doesNotMatch(handler,/historyBook\(\)|persist\(\)|records\.find/);
+  assert.match(appScript,/let scoutKeepaSignal=null/);
+  assert.match(appScript,/const directSignal=scoutKeepaSignal/);
+});
