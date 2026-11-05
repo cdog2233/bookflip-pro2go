@@ -34,7 +34,8 @@ async function getJwks(teamDomain) {
 }
 
 async function verifyAccessJwt(token, env) {
-  const teamDomain = String(env.CF_ACCESS_TEAM_DOMAIN || "").replace(/^https?:\\/\\//, "").replace(/\\/$/, "");
+  const rawTeamDomain = String(env.CF_ACCESS_TEAM_DOMAIN || "");
+  const teamDomain = rawTeamDomain.replace("https://", "").replace("http://", "").split("/")[0];
   const audience = String(env.CF_ACCESS_AUD || "");
   if (!teamDomain || !audience) throw new Error("Cloudflare Access is not configured.");
   const parts = token.split(".");
@@ -93,7 +94,11 @@ export default {
       await verifyAccessJwt(accessToken, env);
 
       let body;
-      try { body = await request.json(); } catch { return json({ error: "Send a valid JSON request." }, 400, allowedOrigin); }
+      try {
+        const rawBody = await request.text();
+        if (rawBody.length > 2048) return json({ error: "Request is too large." }, 413, allowedOrigin);
+        body = JSON.parse(rawBody);
+      } catch { return json({ error: "Send a valid JSON request." }, 400, allowedOrigin); }
       const asin = String(body.asin || "").trim().toUpperCase();
       if (!/^[A-Z0-9]{10}$/.test(asin)) return json({ error: "Enter a valid 10-character ASIN." }, 400, allowedOrigin);
       const includeOffers = body.includeOffers === true;
