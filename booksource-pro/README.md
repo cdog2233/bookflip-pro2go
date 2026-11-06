@@ -14,7 +14,7 @@ https://cdog2233.github.io/bookflip-pro2go/booksource-pro/
 - Direct links to the Amazon listing, Keepa product history, Seller Central eligibility check, and Amazon Revenue Calculator.
 - Profit and ROI analysis including retailer landed costs, inbound shipping/prep/labels, 15% Media referral-fee assumption, $1.80 media closing-fee assumption, Individual-plan $0.99 per-item fee, optional Professional-plan overhead allocation, FBM buyer shipping revenue, fulfillment cost, other per-unit fees, and an optional price-drop/returns reserve.
 - FBA/FBM fulfillment fee must be entered by the user; do not assume one flat fee fits every book. Use the current Amazon Revenue Calculator or Seller Central fee preview.
-- Deal-readiness gates: retailer edition, Amazon listing match, seller eligibility, and demand evidence must be checked before a deal can show `MEETS TARGET`. Missing FBA/FBM fulfillment fees produce `NEEDS DATA` rather than silently assuming a generic fee.
+- Deal-readiness gates: retailer edition, seller identity, in-stock status, Amazon listing match, seller eligibility, and demand evidence must be checked before a deal can show `MEETS TARGET`. Missing FBA/FBM fulfillment fees produce `NEEDS DATA` rather than silently assuming a generic fee.
 - Maximum landed-cost target, configurable minimum profit and ROI, sortable deal comparison, watchlist/status tracking, CSV export, and JSON backup/restore.
 - Mobile-friendly independent interface and browser-local storage.
 
