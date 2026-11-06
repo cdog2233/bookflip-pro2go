@@ -88,6 +88,8 @@ test("a deal cannot reach MEETS TARGET until retailer, Amazon, eligibility and d
   assert.equal(fn({...book,market:{...book.market,amazonMatch:"Not verified"}},offer).decision,"VERIFY AMAZON LISTING");
   assert.equal(fn({...book,market:{...book.market,eligibility:"Not checked"}},offer).decision,"CHECK SELLER ELIGIBILITY");
   assert.equal(fn({...book,market:{...book.market,soldDays180:""}},offer).decision,"CHECK DEMAND");
+  assert.equal(fn({...book,market:{...book.market,soldDays180:"0"}},offer).decision,"LOW SALES ACTIVITY");
+  assert.equal(fn({...book,market:{...book.market,salesRank:"not a rank"}},offer).decision,"CHECK DEMAND");
 });
 test("retailer seller, availability and edition-check inputs are persisted and shown",()=>{
   for(const id of ["rmatch","rseller","rstock"]) assert.ok(js.includes('id="'+id+"'+i+'"),id);
