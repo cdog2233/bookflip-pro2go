@@ -70,6 +70,15 @@ body[data-font="serif"]{font-family:Georgia,"Times New Roman",serif}
 body[data-card-style="flat"] .card,body[data-card-style="flat"] .metric{box-shadow:none!important}
 body[data-card-style="elevated"] .card,body[data-card-style="elevated"] .metric{box-shadow:0 10px 28px color-mix(in srgb,var(--ink) 8%,transparent)!important}
 @media(max-width:560px){.appearance-colors,.appearance-options{grid-template-columns:1fr}.appearance-heading h2{font-size:18px!important}}
+
+/* Compact dashboard title panel */
+.topline{padding:15px 19px!important;border-radius:15px!important;margin-bottom:12px!important;box-shadow:0 6px 18px rgba(18,55,51,.12)!important;gap:12px!important}
+.topline .eyebrow{font-size:10px!important;letter-spacing:.9px!important;margin-bottom:2px}
+.topline h1{font-size:clamp(21px,2.7vw,27px)!important;line-height:1.16!important;letter-spacing:-.55px!important;margin:2px 0 5px!important}
+.topline .sub{font-size:12px!important;line-height:1.35!important;max-width:650px!important}
+.topline>.pill{font-size:10px!important;padding:6px 9px!important;border-radius:999px!important;white-space:nowrap}
+@media(max-width:700px){.topline{padding:13px 14px!important;border-radius:13px!important;margin-bottom:10px!important}.topline h1{font-size:21px!important}.topline .sub{font-size:11px!important}.topline>.pill{font-size:9px!important;padding:5px 7px!important}}
+
 </style>
 </head>
 <body>
