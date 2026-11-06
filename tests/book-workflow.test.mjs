@@ -300,7 +300,7 @@ test("sales CSV exports only recorded sales and labels estimated acquisition cos
   run();
   assert.equal(downloaded[0],"BookFlip_sales.csv");
   assert.equal(downloaded[2],"text/csv");
-  const rows=downloaded[1].split("\\n");
+  const rows=downloaded[1].split("\n");
   assert.equal(rows.length,3);
   assert.match(rows[1],/Sold book/);
   assert.match(rows[1],/Actual/);
