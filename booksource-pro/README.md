@@ -9,11 +9,12 @@ https://cdog2233.github.io/bookflip-pro2go/booksource-pro/
 ## Current capabilities
 - ISBN-10 / ISBN-13 validation and metadata lookup using Google Books, with Open Library fallback. ISBN lookup now selects a catalog result that actually contains the requested identifier instead of blindly trusting the first title result.
 - Retailer search shortcuts for Walmart, Target, Barnes & Noble, Books-A-Million, AbeBooks, ThriftBooks, Better World Books, BooksRun, Book Outlet, Alibris, Powell's, Sam's Club, and BJ's Wholesale.
-- Manual verified retailer price, seller, shipping, tax, and other-cost capture. Retailer prices are not represented as live or automatically scraped.
-- Amazon research fields for ASIN, selling condition, current and 90-day average sales rank, days with sales (manually observed from Keepa), used-offer count, comparable FBA/FBM prices, eligibility status, and check date.
+- Manual verified retailer price, seller identity, availability, edition-match status, shipping, tax, and other-cost capture. Deals remain in a verification state until the retailer edition is confirmed. Retailer prices are not represented as live or automatically scraped.
+- Amazon research fields for ASIN, explicit Amazon edition-match status, selling condition, current and 90-day average sales rank, days with sales (manually observed from Keepa), used-offer count, comparable FBA/FBM prices, eligibility status, and check date.
 - Direct links to the Amazon listing, Keepa product history, Seller Central eligibility check, and Amazon Revenue Calculator.
 - Profit and ROI analysis including retailer landed costs, inbound shipping/prep/labels, 15% Media referral-fee assumption, $1.80 media closing-fee assumption, Individual-plan $0.99 per-item fee, fulfillment cost, other per-unit fees, and an optional price-drop/returns reserve.
 - FBA/FBM fulfillment fee must be entered by the user; do not assume one flat fee fits every book. Use the current Amazon Revenue Calculator or Seller Central fee preview.
+- Deal-readiness gates: retailer edition, Amazon listing match, seller eligibility, and demand evidence must be checked before a deal can show `MEETS TARGET`. Missing FBA/FBM fulfillment fees produce `NEEDS DATA` rather than silently assuming a generic fee.
 - Maximum landed-cost target, configurable minimum profit and ROI, sortable deal comparison, watchlist/status tracking, CSV export, and JSON backup/restore.
 - Mobile-friendly independent interface and browser-local storage.
 
