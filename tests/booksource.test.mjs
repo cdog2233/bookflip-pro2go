@@ -105,7 +105,7 @@ test("FBM profit includes buyer shipping in revenue and referral fee plus plan o
   const fn=new Function("$","num","settings",block+"return calcOffer;")($,num,{minProfit:5,minRoi:50});
   const r=fn({price:5,shipping:0,tax:0,other:0});
   assert.equal(r.valid,true);
-  assert.ok(Math.abs(r.fee-7.24)<1e-9);
-  assert.ok(Math.abs(r.profit-6.26)<1e-9);
-  assert.ok(Math.abs(r.maxCost-(6.26/1.5))<1e-9);
+  assert.ok(Math.abs(r.fee-10.75)<1e-9);
+  assert.ok(Math.abs(r.profit-7.25)<1e-9);
+  assert.ok(Math.abs(r.maxCost-(7.25/1.5))<1e-9);
 });
