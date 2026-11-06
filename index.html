@@ -222,7 +222,7 @@ function applyAppearance(){
  const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.content=appearance.header||APPEARANCE_DEFAULTS.header;
 }
 function saveAppearance(){
- settings.appearance={...appearance};localStorage.setItem(SETKEY,JSON.stringify(settings));if(typeof scheduleCloudSync==='function')scheduleCloudSync();applyAppearance();
+ settings.appearance={...appearance};localStorage.setItem(SETKEY,JSON.stringify(settings));if(typeof scheduleCloudSync==='function')scheduleCloudSync(true);applyAppearance();
  const status=$('appearanceStatus');if(status)status.textContent='Saved automatically on this device.';
 }
 function syncAppearanceControls(){
@@ -430,7 +430,7 @@ $('recordSale').onclick=()=>{
  r.sale={price:sale,fees,costs,profit:sale-fees-costs-(+r.actualPurchaseCost||0)-(+r.actualInboundCosts||0),acquisitionExtrasSource:'actual',date:new Date().toISOString()};
  r.stage='SOLD';persist();$('saleStatus').textContent='Sale recorded. Profit uses your confirmed acquisition costs and actual sale fees / shipping.';['salePrice','saleFees','saleCosts'].forEach(id=>$(id).value='')
 };
-$('saveSettings').onclick=()=>{settings.minProfit=val('minProfit');settings.minRoi=val('minRoi');localStorage.setItem(SETKEY,JSON.stringify(settings));if(typeof scheduleCloudSync==='function')scheduleCloudSync();$('settingsStatus').textContent='Settings saved.';calc()};
+$('saveSettings').onclick=()=>{settings.minProfit=val('minProfit');settings.minRoi=val('minRoi');localStorage.setItem(SETKEY,JSON.stringify(settings));if(typeof scheduleCloudSync==='function')scheduleCloudSync(true);$('settingsStatus').textContent='Settings saved.';calc()};
 $('minProfit').value=settings.minProfit;$('minRoi').value=settings.minRoi;
 function download(name,content,type){let a=document.createElement('a'),u=URL.createObjectURL(new Blob([content],{type}));a.href=u;a.download=name;a.click();URL.revokeObjectURL(u)}
 $('exportBtn').onclick=()=>{let cols=['title','author','isbn','asin','edition','condition','eligibility','fba','fulfillment','tags','location','reviewState','price','fees','cost','actualPurchaseCost','actualInboundCosts','shipping','other','estimatedNet','roi','status','purchased','sale'];let csv=[cols.join(','),...records.map(r=>cols.map(k=>'"'+String(k==='sale'?(r.sale?JSON.stringify(r.sale):''):r[k]??'').replace(/"/g,'""')+'"').join(','))].join('\n');download('BookFlip_inventory.csv',csv,'text/csv')};
@@ -627,7 +627,7 @@ $('askChatGPT').onclick=async()=>{
 renderAIPhotos();
 
 const CLOUD_CONFIG_KEY='bookflip_supabase_config_v1';
-let cloudClient=null,cloudUser=null,cloudSyncTimer=null,cloudSyncBusy=false,cloudApplyingRemote=false;
+let cloudClient=null,cloudUser=null,cloudSyncTimer=null,cloudSyncBusy=false,cloudApplyingRemote=false,cloudPreferLocalSettings=false;
 function cloudStatus(message){const el=$('cloudSyncStatus');if(el)el.textContent=message}
 function cloudConfig(){try{return JSON.parse(localStorage.getItem(CLOUD_CONFIG_KEY)||'{}')}catch(e){return {}}}
 function validSupabaseConfig(url,key){try{const u=new URL(url);return u.protocol==='https:'&&u.hostname.endsWith('.supabase.co')&&String(key||'').length>20}catch(e){return false}}
@@ -635,16 +635,16 @@ function saveCloudConfig(){const url=$('supabaseUrl').value.trim().replace(/\/$/
 function initCloudClient(){const cfg=cloudConfig();if(!validSupabaseConfig(cfg.url,cfg.key)){cloudClient=null;return false}if(!window.supabase||!window.supabase.createClient){cloudStatus('Supabase library did not load. Check your internet connection and reload.');return false}try{if(!cloudClient)cloudClient=window.supabase.createClient(cfg.url,cfg.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});return true}catch(error){cloudStatus('Could not initialize Supabase: '+error.message);return false}}
 function mergeById(remote,local){const map=new Map();(Array.isArray(remote)?remote:[]).forEach(item=>{if(item&&item.id!=null)map.set(String(item.id),item)});(Array.isArray(local)?local:[]).forEach(item=>{if(item&&item.id!=null)map.set(String(item.id),{...(map.get(String(item.id))||{}),...item})});return Array.from(map.values())}
 function localCloudPayload(){return {records,settings,sourceItems,version:1,updatedAt:new Date().toISOString()}}
-async function performCloudSync(){if(!cloudClient||!cloudUser||cloudSyncBusy||cloudApplyingRemote)return;cloudSyncBusy=true;cloudStatus('Syncing your books and settings…');try{
+async function performCloudSync(preferLocalSettings=false){if(!cloudClient||!cloudUser||cloudSyncBusy||cloudApplyingRemote)return;cloudSyncBusy=true;cloudStatus('Syncing your books and settings…');try{
  const {data:remote,error:readError}=await cloudClient.from('bookflip_user_data').select('data,updated_at').eq('user_id',cloudUser.id).maybeSingle();if(readError)throw readError;
  const local=localCloudPayload(),cloud=remote&&remote.data&&typeof remote.data==='object'?remote.data:{};
- const merged={records:mergeById(cloud.records,local.records),sourceItems:mergeById(cloud.sourceItems,local.sourceItems),settings:{...(cloud.settings||{}),...(local.settings||{})},version:1,updatedAt:new Date().toISOString()};
+ const merged={records:mergeById(cloud.records,local.records),sourceItems:mergeById(cloud.sourceItems,local.sourceItems),settings:(!remote||preferLocalSettings)?{...(cloud.settings||{}),...(local.settings||{})}:{...(cloud.settings||{})},version:1,updatedAt:new Date().toISOString()};
  cloudApplyingRemote=true;records=merged.records;sourceItems=merged.sourceItems;settings=merged.settings;appearance={...APPEARANCE_DEFAULTS,...(settings.appearance||{})};
  localStorage.setItem(KEY,JSON.stringify(records));localStorage.setItem(SOURCEKEY,JSON.stringify(sourceItems));localStorage.setItem(SETKEY,JSON.stringify(settings));applyAppearance();syncAppearanceControls();$('minProfit').value=settings.minProfit??7;$('minRoi').value=settings.minRoi??100;render();renderSourcing();refreshHistoryBooks();cloudApplyingRemote=false;
  const {error:writeError}=await cloudClient.from('bookflip_user_data').upsert({user_id:cloudUser.id,data:merged,updated_at:new Date().toISOString()},{onConflict:'user_id'});if(writeError)throw writeError;
  cloudStatus('Synced just now · '+merged.records.length+' books · '+merged.sourceItems.length+' sourcing records.');
  }catch(error){cloudApplyingRemote=false;const message=error&&error.message?error.message:String(error);cloudStatus(message.includes('bookflip_user_data')||message.includes('relation')?'Cloud table not found. Run supabase/schema.sql in Supabase SQL Editor.':'Sync failed: '+message)}finally{cloudSyncBusy=false}}
-function scheduleCloudSync(){if(cloudApplyingRemote||!cloudUser||!cloudClient)return;clearTimeout(cloudSyncTimer);cloudSyncTimer=setTimeout(()=>performCloudSync(),1400)}
+function scheduleCloudSync(preferLocalSettings=false){if(cloudApplyingRemote||!cloudUser||!cloudClient)return;cloudPreferLocalSettings=cloudPreferLocalSettings||preferLocalSettings;clearTimeout(cloudSyncTimer);cloudSyncTimer=setTimeout(()=>{const prefer=cloudPreferLocalSettings;cloudPreferLocalSettings=false;performCloudSync(prefer)},1400)}
 function updateCloudControls(){const signed=!!cloudUser;$('cloudSignOut').disabled=!signed;$('cloudSyncNow').disabled=!signed;$('cloudSignIn').disabled=signed;$('cloudSignUp').disabled=signed;if(signed)cloudStatus('Signed in as '+(cloudUser.email||'your account')+'.')}
 async function cloudAuth(action){if(!initCloudClient()){cloudStatus('Save your Supabase Project URL and publishable/anon key first.');return}const email=$('cloudEmail').value.trim(),password=$('cloudPassword').value;if(!email||!password){cloudStatus('Enter your account email and password.');return}cloudStatus(action==='signup'?'Creating your account…':'Signing in…');try{const result=action==='signup'?await cloudClient.auth.signUp({email,password}):await cloudClient.auth.signInWithPassword({email,password});if(result.error)throw result.error;if(action==='signup'&&!result.data.session){cloudStatus('Account created. Check your email to confirm it, then sign in here.');return}cloudUser=result.data.user||null;updateCloudControls();if(cloudUser)await performCloudSync()}catch(error){cloudStatus('Account error: '+(error.message||String(error)))}}
 async function bootCloudSync(){const cfg=cloudConfig();if(cfg.url)$('supabaseUrl').value=cfg.url;if(cfg.key)$('supabaseAnonKey').value=cfg.key;if(!initCloudClient()){if(cfg.url)cloudStatus('Check Supabase library and saved connection details.');return}try{const {data,error}=await cloudClient.auth.getSession();if(error)throw error;cloudUser=data.session&&data.session.user||null;updateCloudControls();if(cloudUser)await performCloudSync();cloudClient.auth.onAuthStateChange((event,session)=>{cloudUser=session&&session.user||null;updateCloudControls();if(cloudUser&&event!=='TOKEN_REFRESHED')setTimeout(()=>performCloudSync(),0);if(!cloudUser)cloudStatus('Signed out. Your local data remains on this device.')})}catch(error){cloudStatus('Could not check sign-in: '+(error.message||String(error)))}}
