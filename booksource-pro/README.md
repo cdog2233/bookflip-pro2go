@@ -1,24 +1,30 @@
 # BookSource Pro
 
-A separate, free-first book sourcing and arbitrage research application.
+A separate, free-first book sourcing and arbitrage research application. It is not part of the BookFlip Pro2Go inventory workflow.
 
 ## Open it
 After GitHub Pages deploys, open:
 https://cdog2233.github.io/bookflip-pro2go/booksource-pro/
 
-## Included in the first version
-- ISBN-10 / ISBN-13 validation and book metadata lookup (Google Books, with Open Library fallback).
-- Retailer search links for Walmart, Target, Barnes & Noble, Books-A-Million, AbeBooks, and ThriftBooks.
-- Manual verified retailer price, shipping, tax, and other-cost capture.
-- Amazon resale price and editable FBA / FBM fee assumptions.
-- Net profit, ROI, maximum buy cost, target decision, sortable comparison table.
-- Local watchlist, status tracking, CSV export, JSON backup/restore.
-- Mobile-friendly independent interface.
+## Current capabilities
+- ISBN-10 / ISBN-13 validation and metadata lookup using Google Books, with Open Library fallback. ISBN lookup now selects a catalog result that actually contains the requested identifier instead of blindly trusting the first title result.
+- Retailer search shortcuts for Walmart, Target, Barnes & Noble, Books-A-Million, AbeBooks, ThriftBooks, Better World Books, BooksRun, Book Outlet, Alibris, Powell's, Sam's Club, and BJ's Wholesale.
+- Manual verified retailer price, seller, shipping, tax, and other-cost capture. Retailer prices are not represented as live or automatically scraped.
+- Amazon research fields for ASIN, selling condition, current and 90-day average sales rank, days with sales (manually observed from Keepa), used-offer count, comparable FBA/FBM prices, eligibility status, and check date.
+- Direct links to the Amazon listing, Keepa product history, Seller Central eligibility check, and Amazon Revenue Calculator.
+- Profit and ROI analysis including retailer landed costs, inbound shipping/prep/labels, 15% Media referral-fee assumption, $1.80 media closing-fee assumption, Individual-plan $0.99 per-item fee, fulfillment cost, other per-unit fees, and an optional price-drop/returns reserve.
+- FBA/FBM fulfillment fee must be entered by the user; do not assume one flat fee fits every book. Use the current Amazon Revenue Calculator or Seller Central fee preview.
+- Maximum landed-cost target, configurable minimum profit and ROI, sortable deal comparison, watchlist/status tracking, CSV export, and JSON backup/restore.
+- Mobile-friendly independent interface and browser-local storage.
 
-## Data accuracy and limitations
-Retailer prices are not scraped or represented as live unless the user verifies them on the retailer site and enters them. Retailer search pages may vary by region, stock, seller, and ISBN. A title match is not proof of an exact edition. Amazon price, fees, offer availability, and listing eligibility are user-entered assumptions in this version. No purchase or listing is automated. All records are stored in this browser's localStorage and do not sync between devices.
+## Important accuracy limits
+Retailer prices, stock, coupons, shipping, tax, seller identity, and exact edition must be checked on the retailer page. Search results are leads, not proof that the retailer offer is the same edition or actually purchasable. Some retailer terms prohibit unauthorized scraping or automated site access, so this app uses retailer search links and manual verification rather than pretending to provide live retailer prices.
 
-Google Books and Open Library are used only for bibliographic metadata lookup, not price data. Respect their API usage policies. Amazon integrations require seller authorization and applicable SP-API onboarding/roles; they are not included in this zero-cost starter.
+Amazon price, sales rank, used-offer counts, sales activity, seller eligibility, and listing condition are manual observations unless a supported data source is explicitly connected. A current rank alone does not guarantee sales. Use Keepa history and recent sales activity where possible. The app does not calculate an exact sales velocity from rank or promise that an item will sell.
+
+Amazon fee assumptions must be verified for the exact ASIN. Amazon's 2026 US fee information states that Media products (including books) have a 15% referral fee and $1.80 closing fee; Individual selling plans also incur a $0.99 per-item fee. FBA fulfillment fees vary by size, weight, price, and date, and 2026 includes a 3.5% fuel/logistics surcharge and holiday peak fees. Use Amazon's Revenue Calculator or Seller Central fee preview for the actual all-in fee. These estimates are not a guarantee of proceeds.
+
+No purchase or Amazon listing is automated. No paid API or shared secret key is required. All records stay in this browser's localStorage and do not sync between devices. Export a JSON backup before clearing browser data or changing devices.
 
 ## Privacy
-No user account, analytics, backend, API key, or paid AI service is required. The ISBN/title lookup sends the query to Google Books or Open Library. Sourcing records remain in local browser storage unless exported by the user.
+ISBN/title lookup sends the query to Google Books or Open Library. Sourcing records and settings remain in local browser storage unless exported by the user.
