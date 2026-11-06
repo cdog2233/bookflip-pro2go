@@ -272,3 +272,39 @@ test("Review History and inventory tables remain responsive on iPhone widths",()
   assert.match(html,/id="backupBtn"/);
   assert.match(html,/id="restoreFile"/);
 });
+
+test("dashboard separates total acquisition spend, unsold inventory cost, gross sales and realized profit",()=>{
+  assert.match(html,/id="mInvested"/);
+  assert.match(html,/id="mInventoryCost"/);
+  assert.match(html,/id="mRevenue"/);
+  assert.match(html,/id="mProfit"/);
+  const render=section("function render(){","function renderReview(){");
+  assert.match(render,/const purchased=records\.filter\(r=>r\.purchased\)/);
+  assert.match(render,/purchased\.filter\(r=>!r\.sale\)/);
+  assert.match(render,/sold\.reduce\(\(s,r\)=>s\+\(\+r\.sale\.price\|\|0\),0\)/);
+  assert.match(render,/\$\('mInventoryCost'\)/);
+  assert.match(render,/\$\('mRevenue'\)/);
+});
+
+test("sales CSV exports only recorded sales and labels estimated acquisition costs",()=>{
+  const handler=section("$('exportSalesBtn').onclick=","$('backupBtn').onclick=");
+  const records=[
+    {title:"Sold book",author:"A",isbn:"9780306406157",asin:"B000000001",purchased:true,cost:10,shipping:1,other:0,actualPurchaseCost:10.5,actualInboundCosts:1.25,sale:{date:"2026-11-05T10:00:00.000Z",price:30,fees:5,costs:2,profit:11.25}},
+    {title:"Unsold book",purchased:true,cost:8,shipping:1,other:0,sale:null},
+    {title:"Legacy sale",purchased:true,cost:4,shipping:1,other:0,sale:{price:15,fees:3,costs:1,profit:6}}
+  ];
+  const fields={exportSalesBtn:{}};
+  const $=id=>fields[id];
+  let downloaded=null;
+  const run=new Function("$","records","download",handler+";return $('exportSalesBtn').onclick;")($,records,(...args)=>downloaded=args);
+  run();
+  assert.equal(downloaded[0],"BookFlip_sales.csv");
+  assert.equal(downloaded[2],"text/csv");
+  const rows=downloaded[1].split("\\n");
+  assert.equal(rows.length,3);
+  assert.match(rows[1],/Sold book/);
+  assert.match(rows[1],/Actual/);
+  assert.match(rows[2],/Legacy sale/);
+  assert.match(rows[2],/Contains estimated acquisition costs/);
+  assert.ok(!downloaded[1].includes("Unsold book"));
+});
