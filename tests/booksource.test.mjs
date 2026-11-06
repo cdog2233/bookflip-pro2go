@@ -28,7 +28,7 @@ test("saved sourcing records support CSV export and JSON backup/restore",()=>{
 });
 
 test("Amazon market research captures ASIN, condition, sales history, offers and eligibility",()=>{
-  for(const id of ["asin","amazonMatch","sellCondition","salesRank","avgRank90","soldDays90","usedOffers","usedFbaPrice","usedFbmPrice","eligibility","marketDate","openAmazonListing","openKeepa","openSellerEligibility","buyerShipping","planAllocation"]) assert.ok(html.includes('id="'+id+'"'),id);
+  for(const id of ["asin","amazonMatch","sellCondition","salesRank","avgRank90","soldDays180","usedOffers","usedFbaPrice","usedFbmPrice","eligibility","marketDate","openAmazonListing","openKeepa","openSellerEligibility","buyerShipping","planAllocation"]) assert.ok(html.includes('id="'+id+'"'),id);
   assert.match(html,/manual snapshots—not live data pulled by BookSource Pro/i);
   assert.match(html,/A sales-rank number alone does not guarantee sales/i);
 });
@@ -73,21 +73,21 @@ test("saved deal math preserves legacy records and applies the Individual per-it
   assert.equal(incomplete.decision,"NEEDS DATA");
 });
 test("sales CSV exports Amazon market evidence and expanded per-unit costs",()=>{
-  for(const s of ["ASIN","Sales rank","90-day average rank","Sales days (90d)","Eligibility","Inbound/prep","Reserve"]) assert.ok(html.includes(s),s);
-  assert.match(js,/b\.market\?\.soldDays90/);
+  for(const s of ["ASIN","Sales rank","90-day average rank","Sales days (180d)","Eligibility","Inbound/prep","Reserve"]) assert.ok(html.includes(s),s);
+  assert.match(js,/b\.market\?\.soldDays180/);
   assert.match(js,/b\.market\?\.eligibility/);
 });
 
 test("a deal cannot reach MEETS TARGET until retailer, Amazon, eligibility and demand checks pass",()=>{
   const block=js.slice(js.indexOf("function calcSaved"),js.indexOf("function offerRows"));
   const fn=new Function("settings",block+"return calcSaved;")({minProfit:5,minRoi:50});
-  const book={asin:"B000000000",salePrice:30,referral:15,closing:1.8,fulfillment:"FBA",sellerPlan:"Individual",fbaFee:3.5,market:{amazonMatch:"Exact ISBN match",eligibility:"Eligible",salesRank:"45000",avgRank90:"62000",soldDays90:"12"}};
+  const book={asin:"B000000000",salePrice:30,referral:15,closing:1.8,fulfillment:"FBA",sellerPlan:"Individual",fbaFee:3.5,market:{amazonMatch:"Exact ISBN match",eligibility:"Eligible",salesRank:"45000",avgRank90:"62000",soldDays180:"12"}};
   const offer={price:8,shipping:1,tax:.56,other:.2,matchStatus:"Exact ISBN match"};
   assert.equal(fn(book,offer).decision,"MEETS TARGET");
   assert.equal(fn(book,{...offer,matchStatus:"Not verified"}).decision,"VERIFY RETAILER EDITION");
   assert.equal(fn({...book,market:{...book.market,amazonMatch:"Not verified"}},offer).decision,"VERIFY AMAZON LISTING");
   assert.equal(fn({...book,market:{...book.market,eligibility:"Not checked"}},offer).decision,"CHECK SELLER ELIGIBILITY");
-  assert.equal(fn({...book,market:{...book.market,soldDays90:""}},offer).decision,"CHECK DEMAND");
+  assert.equal(fn({...book,market:{...book.market,soldDays180:""}},offer).decision,"CHECK DEMAND");
 });
 test("retailer seller, availability and edition-check inputs are persisted and shown",()=>{
   for(const id of ["rmatch","rseller","rstock"]) assert.ok(js.includes('id="'+id+"'+i+'"),id);
