@@ -28,7 +28,7 @@ test("saved sourcing records support CSV export and JSON backup/restore",()=>{
 });
 
 test("Amazon market research captures ASIN, condition, sales history, offers and eligibility",()=>{
-  for(const id of ["asin","sellCondition","salesRank","avgRank90","soldDays90","usedOffers","usedFbaPrice","usedFbmPrice","eligibility","marketDate","openAmazonListing","openKeepa","openSellerEligibility"]) assert.ok(html.includes('id="'+id+'"'),id);
+  for(const id of ["asin","amazonMatch","sellCondition","salesRank","avgRank90","soldDays90","usedOffers","usedFbaPrice","usedFbmPrice","eligibility","marketDate","openAmazonListing","openKeepa","openSellerEligibility"]) assert.ok(html.includes('id="'+id+'"'),id);
   assert.match(html,/manual snapshots—not live data pulled by BookSource Pro/i);
   assert.match(html,/A sales-rank number alone does not guarantee sales/i);
 });
@@ -49,7 +49,7 @@ test("profit calculator includes seller plan, inbound prep, extra fees and safet
   const result=fns.calcOffer({price:8,shipping:.5,tax:.4,other:.1});
   assert.equal(result.valid,true);
   assert.equal(result.total,10.5);
-  assert.equal(result.fee,12.54);
+  assert.ok(Math.abs(result.fee-12.54)<1e-9);
   assert.ok(Math.abs(result.profit-5.96)<1e-9);
   assert.ok(Math.abs(result.roi-56.7619047619)<1e-8);
   assert.ok(Math.abs(result.maxCost-7.64)<1e-9);
@@ -65,7 +65,7 @@ test("saved deal math preserves legacy records and applies the Individual per-it
   const oldRecord={salePrice:30,referral:15,closing:1.8,fulfillment:"FBA",fbaFee:3.5};
   const result=fn(oldRecord,{price:8,shipping:1,tax:.56,other:.2});
   assert.equal(result.valid,true);
-  assert.equal(result.fee,10.79);
+  assert.ok(Math.abs(result.fee-10.79)<1e-9);
   assert.equal(result.total,9.76);
   assert.ok(Math.abs(result.profit-9.45)<1e-9);
   const incomplete=fn({...oldRecord,fbaFee:""},{price:8});
