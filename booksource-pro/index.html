@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#102b2b"><title>BookSource Pro · Book Arbitrage Workspace</title>
+<meta name="theme-color" content="#102b2b"><script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script><title>BookSource Pro · Book Arbitrage Workspace</title>
 <style>
 :root{--bg:#f2f5f3;--panel:#fff;--ink:#172522;--muted:#64736e;--line:#dfe8e3;--brand:#087e78;--dark:#102b2b;--gold:#e7bd67;--green:#14764f;--red:#b44444;--amber:#94600c;--shadow:0 12px 30px #173b3210}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}header{background:linear-gradient(115deg,var(--dark),#1a514a);color:#fff;padding:17px max(16px,calc((100vw - 1180px)/2));position:sticky;top:0;z-index:5;box-shadow:0 7px 25px #102b2b20}.brand{display:flex;align-items:center;gap:12px}.logo{width:42px;height:42px;border-radius:14px;background:var(--gold);color:#183c35;display:grid;place-items:center;font-size:21px;font-weight:900}.brand b{font-size:18px}.brand small{display:block;color:#c2d8d1;font-size:11px}main{max-width:1180px;margin:auto;padding:22px 15px 90px}.hero{background:linear-gradient(115deg,#153b39,#1c5a52);color:white;border-radius:21px;padding:23px;margin-bottom:17px}.eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;font-weight:850;color:var(--brand)}.hero .eyebrow{color:#f0d48e}.hero h1{font-size:clamp(25px,4vw,34px);margin:5px 0}.hero p{color:#d0e1dc;margin:0;max-width:720px;font-size:13px}.tabs{display:flex;gap:7px;overflow:auto;padding:5px 0 15px;position:sticky;top:76px;background:var(--bg);z-index:4}.tab{border:1px solid transparent;background:transparent;color:var(--muted);padding:10px 14px;border-radius:11px;font-weight:750;white-space:nowrap;cursor:pointer}.tab.active{background:var(--dark);color:#fff}.view{display:none}.view.active{display:block}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}.metric,.card{background:var(--panel);border:1px solid var(--line);border-radius:17px;box-shadow:var(--shadow)}.metric{padding:15px}.metric span{display:block;color:var(--muted);font-size:11px;font-weight:700}.metric b{display:block;font-size:25px;margin-top:4px}.card{padding:18px;margin-bottom:13px}.card h2{font-size:17px;margin:0 0 5px}.card p{font-size:12px;color:var(--muted);margin:0 0 14px}.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.grow{flex:1;min-width:170px}.field{display:flex;flex-direction:column;gap:5px;margin:0 0 11px}.field label{font-size:11px;color:var(--muted);font-weight:800}.field input,.field select{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px;background:#fff;color:var(--ink);font:inherit;min-width:0}.field input:focus,.field select:focus{outline:2px solid #087e7828;border-color:var(--brand)}.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}.btn{border:0;border-radius:10px;background:var(--brand);color:white;padding:11px 14px;font-weight:800;cursor:pointer}.btn.secondary{background:#eaf1ee;color:#294a43}.btn.dark{background:var(--dark)}.btn.danger{background:#fff0ef;color:var(--red)}.btn.small{padding:7px 10px;font-size:11px}.btn:disabled{opacity:.5}.notice{padding:11px 13px;border-radius:11px;background:#eaf3f0;color:#3a5c53;font-size:12px;margin:10px 0}.notice.warn{background:#fff4df;color:#79530f}.notice.bad{background:#fff0ef;color:#8e3434}.muted{color:var(--muted);font-size:11px}.pill{display:inline-flex;padding:5px 8px;border-radius:30px;background:#edf2ef;color:#53645d;font-size:10px;font-weight:850}.pill.good{background:#e4f5eb;color:var(--green)}.pill.review{background:#fff3dc;color:var(--amber)}.pill.bad{background:#ffeded;color:var(--red)}.result{border:1px solid var(--line);border-radius:13px;padding:13px;margin:9px 0;background:#fbfcfb}.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}.kpi{background:#f0f5f2;border-radius:10px;padding:10px}.kpi span{display:block;color:var(--muted);font-size:10px}.kpi b{font-size:17px}.tablewrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:12px}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}a{color:var(--brand);font-weight:750;text-decoration:none}.retailer-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.retailer{border:1px solid var(--line);border-radius:12px;padding:11px}.retailer b{display:block;font-size:12px;margin-bottom:5px}.retailer .field{margin-bottom:7px}.retailer .field input{padding:9px;font-size:13px}.empty{text-align:center;color:var(--muted);padding:26px 10px;font-size:12px}.hide{display:none!important}.score{font-weight:900}.actions{display:flex;gap:6px;flex-wrap:wrap}.fine{font-size:10px;color:var(--muted)}footer{text-align:center;color:var(--muted);font-size:10px;padding:22px}
@@ -18,7 +18,7 @@
 </nav>
 <section class="view active" id="finder">
 <div class="card"><h2>1. Identify a book</h2><p>Search by ISBN or title. ISBN gives the strongest edition match. Metadata lookup uses public book catalog services.</p>
-<div class="row"><div class="field grow"><label>ISBN-10 / ISBN-13</label><input id="isbn" placeholder="9780140328721" inputmode="numeric"></div><button class="btn" id="lookupIsbn">Look up ISBN</button></div>
+<div class="row"><div class="field grow"><label>ISBN-10 / ISBN-13</label><input id="isbn" placeholder="9780140328721" inputmode="numeric"></div><button class="btn secondary" id="scanBtn" type="button">Scan</button><button class="btn" id="lookupIsbn">Look up ISBN</button></div><div class="fine">Use your rear camera to scan a book barcode. On supported phones, tap the flashlight control inside the scanner for extra light.</div>
 <div class="row"><div class="field grow"><label>Book title or author</label><input id="titleQuery" placeholder="Title or author"></div><button class="btn secondary" id="lookupTitle">Search title</button></div>
 <div id="bookStatus" class="muted" aria-live="polite">No book selected yet.</div>
 <div id="bookMeta" class="result hide"></div>
@@ -128,6 +128,43 @@ window.deleteSaved=id=>{if(confirm('Delete this saved book and its retailer comp
 window.changeStatus=id=>{const b=records.find(x=>x.id===id);if(!b)return;const choices=['Researching','To Buy','Purchased','Skipped'];b.status=choices[(choices.indexOf(b.status)+1)%choices.length];persist()};
 function showTab(id){document.querySelectorAll('.view').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===id));if(id==='compare')renderDealTable();if(id==='watchlist')renderWatch();window.scrollTo({top:0,behavior:'smooth'})}
 document.querySelectorAll('.tab').forEach(x=>x.addEventListener('click',()=>showTab(x.dataset.tab)));
+$('scanBtn').onclick=async()=>{
+ if(!window.Html5Qrcode){$('bookStatus').textContent='The camera scanner could not load. You can still enter the ISBN manually.';return}
+ const overlay=document.createElement('div');
+ overlay.style='position:fixed;inset:0;background:#000d;z-index:99;display:grid;place-items:center;padding:18px';
+ overlay.innerHTML='<div style="background:white;color:#172522;padding:16px;border-radius:16px;max-width:440px;width:100%"><h3 style="margin:0 0 8px">Scan book barcode</h3><p style="font-size:13px;color:#64736e">Allow camera access and hold the ISBN barcode inside the frame.</p><div id="reader" style="width:100%"></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button id="flashToggle" class="btn secondary" type="button" disabled>Checking flashlight…</button><button id="stopCam" class="btn secondary" type="button">Cancel</button></div><div id="flashStatus" style="font-size:12px;color:#64736e;margin-top:8px" aria-live="polite">Flashlight is optional. Start the camera to check availability.</div></div>';
+ document.body.appendChild(overlay);
+ const scanner=new Html5Qrcode('reader');
+ let closed=false,flashOn=false,flashReady=false;
+ const flashButton=overlay.querySelector('#flashToggle'),flashStatus=overlay.querySelector('#flashStatus');
+ const setFlash=on=>{flashOn=on;flashButton.textContent=on?'Turn flashlight off':'Turn flashlight on';flashButton.classList.toggle('dark',on)};
+ const close=async()=>{
+  if(closed)return;closed=true;
+  if(flashOn){try{await scanner.applyVideoConstraints({advanced:[{torch:false}]})}catch(e){}}
+  try{if(scanner.isScanning)await scanner.stop()}catch(e){}
+  try{scanner.clear()}catch(e){}
+  overlay.remove();
+ };
+ overlay.querySelector('#stopCam').onclick=close;
+ flashButton.onclick=async()=>{
+  if(!flashReady||closed)return;
+  flashButton.disabled=true;
+  try{await scanner.applyVideoConstraints({advanced:[{torch:!flashOn}]});setFlash(!flashOn);flashStatus.textContent=flashOn?'Flashlight is on.':'Flashlight is off.';flashStatus.style.color='#64736e'}
+  catch(e){flashStatus.textContent='Flashlight could not be toggled in this camera session. Scanning will continue normally.';flashStatus.style.color='#94600c'}
+  finally{if(!closed)flashButton.disabled=false}
+ };
+ try{
+  await scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:260,height:150},formatsToSupport:[Html5QrcodeSupportedFormats.EAN_13,Html5QrcodeSupportedFormats.EAN_8,Html5QrcodeSupportedFormats.UPC_A]},async(decoded)=>{
+   const code=cleanIsbn(decoded);
+   if(validIsbn(code)){$('isbn').value=code;await close();$('lookupIsbn').click()}
+  },()=>{});
+  try{
+   const caps=scanner.getRunningTrackCapabilities();
+   if(caps&&caps.torch){flashReady=true;flashButton.disabled=false;flashButton.textContent='Turn flashlight on';flashStatus.textContent='Flashlight ready. Use it whenever extra light helps scanning.'}
+   else{flashButton.disabled=true;flashButton.textContent='Flashlight not supported';flashStatus.textContent='This camera session does not expose flashlight control. You can still scan normally.'}
+  }catch(e){flashButton.disabled=true;flashButton.textContent='Flashlight unavailable';flashStatus.textContent='Could not check flashlight support. You can still scan normally.'}
+ }catch(e){await close();$('bookStatus').textContent='Camera could not start. Check browser camera permission and allow access, or type the ISBN manually.'}
+};
 $('lookupIsbn').onclick=async()=>{try{await lookup($('isbn').value);$('bookStatus').textContent='Book details found. Verify the exact edition.'}catch(e){$('bookStatus').textContent=e.message}};
 $('lookupTitle').onclick=async()=>{try{await lookupTitle($('titleQuery').value)}catch(e){$('bookStatus').textContent=e.message}};
 $('isbn').addEventListener('keydown',e=>{if(e.key==='Enter')$('lookupIsbn').click()});
