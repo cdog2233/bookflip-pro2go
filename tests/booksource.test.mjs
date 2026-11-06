@@ -28,7 +28,7 @@ test("saved sourcing records support CSV export and JSON backup/restore",()=>{
 });
 
 test("Amazon market research captures ASIN, condition, sales history, offers and eligibility",()=>{
-  for(const id of ["asin","amazonMatch","sellCondition","salesRank","avgRank90","soldDays90","usedOffers","usedFbaPrice","usedFbmPrice","eligibility","marketDate","openAmazonListing","openKeepa","openSellerEligibility"]) assert.ok(html.includes('id="'+id+'"'),id);
+  for(const id of ["asin","amazonMatch","sellCondition","salesRank","avgRank90","soldDays90","usedOffers","usedFbaPrice","usedFbmPrice","eligibility","marketDate","openAmazonListing","openKeepa","openSellerEligibility","buyerShipping","planAllocation"]) assert.ok(html.includes('id="'+id+'"'),id);
   assert.match(html,/manual snapshots—not live data pulled by BookSource Pro/i);
   assert.match(html,/A sales-rank number alone does not guarantee sales/i);
 });
@@ -95,4 +95,17 @@ test("retailer seller, availability and edition-check inputs are persisted and s
   assert.match(js,/seller:\$\('rseller'\+i\)\.value\.trim\(\)/);
   assert.match(js,/availability:\$\('rstock'\+i\)\.value/);
   assert.match(js,/VERIFY RETAILER EDITION/);
+});
+
+test("FBM profit includes buyer shipping in revenue and referral fee plus plan overhead",()=>{
+  const block=js.slice(js.indexOf("function feeConfig"),js.indexOf("function retailerHtml"));
+  const fields={salePrice:"20",referral:"15",closing:"1.80",fulfillment:{value:"FBM"},sellerPlan:{value:"Professional"},fbaFee:"5",fbmCost:"4.50",prepInbound:"0",extraFees:"0",buyerShipping:"3",planAllocation:"1",reserve:"0"};
+  const $=id=>typeof fields[id]==="object"?fields[id]:({value:fields[id]??""});
+  const num=id=>Number(fields[id]?.value??fields[id]??0);
+  const fn=new Function("$","num","settings",block+"return calcOffer;")($,num,{minProfit:5,minRoi:50});
+  const r=fn({price:5,shipping:0,tax:0,other:0});
+  assert.equal(r.valid,true);
+  assert.ok(Math.abs(r.fee-7.24)<1e-9);
+  assert.ok(Math.abs(r.profit-6.26)<1e-9);
+  assert.ok(Math.abs(r.maxCost-(6.26/1.5))<1e-9);
 });
