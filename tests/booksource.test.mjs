@@ -82,9 +82,12 @@ test("a deal cannot reach MEETS TARGET until retailer, Amazon, eligibility and d
   const block=js.slice(js.indexOf("function calcSaved"),js.indexOf("function offerRows"));
   const fn=new Function("settings",block+"return calcSaved;")({minProfit:5,minRoi:50});
   const book={asin:"B000000000",salePrice:30,referral:15,closing:1.8,fulfillment:"FBA",sellerPlan:"Individual",fbaFee:3.5,market:{amazonMatch:"Exact ISBN match",eligibility:"Eligible",salesRank:"45000",avgRank90:"62000",soldDays180:"12"}};
-  const offer={price:8,shipping:1,tax:.56,other:.2,matchStatus:"Exact ISBN match"};
+  const offer={price:8,shipping:1,tax:.56,other:.2,matchStatus:"Exact ISBN match",seller:"Walmart.com",availability:"In stock"};
   assert.equal(fn(book,offer).decision,"MEETS TARGET");
   assert.equal(fn(book,{...offer,matchStatus:"Not verified"}).decision,"VERIFY RETAILER EDITION");
+  assert.equal(fn(book,{...offer,availability:"Out of stock"}).decision,"OUT OF STOCK");
+  assert.equal(fn(book,{...offer,availability:"Unknown"}).decision,"VERIFY STOCK");
+  assert.equal(fn(book,{...offer,seller:""}).decision,"VERIFY SELLER");
   assert.equal(fn({...book,market:{...book.market,amazonMatch:"Not verified"}},offer).decision,"VERIFY AMAZON LISTING");
   assert.equal(fn({...book,market:{...book.market,eligibility:"Not checked"}},offer).decision,"CHECK SELLER ELIGIBILITY");
   assert.equal(fn({...book,market:{...book.market,soldDays180:""}},offer).decision,"CHECK DEMAND");
