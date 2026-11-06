@@ -430,7 +430,7 @@ $('recordSale').onclick=()=>{
  r.sale={price:sale,fees,costs,profit:sale-fees-costs-(+r.actualPurchaseCost||0)-(+r.actualInboundCosts||0),acquisitionExtrasSource:'actual',date:new Date().toISOString()};
  r.stage='SOLD';persist();$('saleStatus').textContent='Sale recorded. Profit uses your confirmed acquisition costs and actual sale fees / shipping.';['salePrice','saleFees','saleCosts'].forEach(id=>$(id).value='')
 };
-$('saveSettings').onclick=()=>{settings.minProfit=val('minProfit');settings.minRoi=val('minRoi');localStorage.setItem(SETKEY,JSON.stringify(settings));$('settingsStatus').textContent='Settings saved.';calc()};
+$('saveSettings').onclick=()=>{settings.minProfit=val('minProfit');settings.minRoi=val('minRoi');localStorage.setItem(SETKEY,JSON.stringify(settings));if(typeof scheduleCloudSync==='function')scheduleCloudSync();$('settingsStatus').textContent='Settings saved.';calc()};
 $('minProfit').value=settings.minProfit;$('minRoi').value=settings.minRoi;
 function download(name,content,type){let a=document.createElement('a'),u=URL.createObjectURL(new Blob([content],{type}));a.href=u;a.download=name;a.click();URL.revokeObjectURL(u)}
 $('exportBtn').onclick=()=>{let cols=['title','author','isbn','asin','edition','condition','eligibility','fba','fulfillment','tags','location','reviewState','price','fees','cost','actualPurchaseCost','actualInboundCosts','shipping','other','estimatedNet','roi','status','purchased','sale'];let csv=[cols.join(','),...records.map(r=>cols.map(k=>'"'+String(k==='sale'?(r.sale?JSON.stringify(r.sale):''):r[k]??'').replace(/"/g,'""')+'"').join(','))].join('\n');download('BookFlip_inventory.csv',csv,'text/csv')};
