@@ -52,7 +52,7 @@ test("profit calculator includes seller plan, inbound prep, extra fees and safet
   assert.equal(result.fee,12.54);
   assert.ok(Math.abs(result.profit-5.96)<1e-9);
   assert.ok(Math.abs(result.roi-56.7619047619)<1e-8);
-  assert.equal(result.maxCost,7.64);
+  assert.ok(Math.abs(result.maxCost-7.64)<1e-9);
   assert.equal(result.decision,"MEETS TARGET");
   fields.fbaFee="";
   assert.equal(fns.calcOffer({price:8}).valid,false);
