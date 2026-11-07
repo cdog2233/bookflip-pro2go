@@ -89,7 +89,8 @@ test("a deal cannot reach MEETS TARGET until retailer, Amazon, eligibility and d
   assert.equal(fn(book,{...offer,availability:"Unknown"}).decision,"VERIFY STOCK");
   assert.equal(fn(book,{...offer,seller:""}).decision,"VERIFY SELLER");
   assert.equal(fn({...book,market:{...book.market,amazonMatch:"Not verified"}},offer).decision,"VERIFY AMAZON LISTING");
-  assert.equal(fn({...book,market:{...book.market,eligibility:"Not checked"}},offer).decision,"CHECK CONDITION-SPECIFIC ELIGIBILITY");
+  assert.equal(fn({...book,market:{...book.market,eligibility:"Not checked"}},offer).decision,"CHECK SELLER ELIGIBILITY");
+  assert.equal(fn({...book,market:{...book.market,eligibilityFor:"New"}},offer).decision,"RECHECK CONDITION ELIGIBILITY");
   assert.equal(fn({...book,market:{...book.market,soldDays180:""}},offer).decision,"CHECK DEMAND");
   assert.equal(fn({...book,market:{...book.market,soldDays180:"0"}},offer).decision,"LOW SALES ACTIVITY");
   assert.equal(fn({...book,market:{...book.market,salesRank:"not a rank"}},offer).decision,"CHECK DEMAND");
@@ -128,7 +129,7 @@ test("FBA surcharge is added only when the user explicitly enters a base fee",()
   assert.equal(fns().fbaSurcharge,0);
 });
 test("bulk ISBN queue, continuous scanning, edition choices and eligibility condition checks are present",()=>{
-  for(const s of ["isbnBatch","addBatch","loadNextIsbn","continuousScan","titleCandidates","eligibilityFor","fbaFeeMode","CHECK CONDITION-SPECIFIC ELIGIBILITY"]) assert.ok(html.includes(s),s);
+  for(const s of ["isbnBatch","addBatch","loadNextIsbn","continuousScan","titleCandidates","eligibilityFor","fbaFeeMode","RECHECK CONDITION ELIGIBILITY"]) assert.ok(html.includes(s),s);
   assert.match(js,/isbnQueue\.some\(x=>x\.isbn===isbn\)/);
   assert.match(js,/titleCandidates\.map\(\(b,i\)=>/);
 });
