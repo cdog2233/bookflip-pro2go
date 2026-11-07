@@ -28,7 +28,7 @@ test("saved sourcing records support CSV export and JSON backup/restore",()=>{
 });
 
 test("Amazon market research captures ASIN, condition, sales history, offers and eligibility",()=>{
-  for(const id of ["asin","amazonMatch","sellCondition","salesRank","avgRank90","soldDays180","usedOffers","usedFbaPrice","usedFbmPrice","eligibility","marketDate","openAmazonListing","openKeepa","openSellerEligibility","buyerShipping","planAllocation"]) assert.ok(html.includes('id="'+id+'"'),id);
+  for(const id of ["asin","amazonMatch","sellCondition","salesRank","avgRank90","soldDays180","usedOffers","usedFbaPrice","usedFbmPrice","eligibility","eligibilityFor","fbaFeeMode","marketDate","openAmazonListing","openKeepa","openSellerEligibility","buyerShipping","planAllocation"]) assert.ok(html.includes('id="'+id+'"'),id);
   assert.match(html,/manual snapshots—not live data pulled by BookSource Pro/i);
   assert.match(html,/A sales-rank number alone does not guarantee sales/i);
 });
@@ -81,7 +81,7 @@ test("sales CSV exports Amazon market evidence and expanded per-unit costs",()=>
 test("a deal cannot reach MEETS TARGET until retailer, Amazon, eligibility and demand checks pass",()=>{
   const block=js.slice(js.indexOf("function calcSaved"),js.indexOf("function offerRows"));
   const fn=new Function("settings",block+"return calcSaved;")({minProfit:5,minRoi:50});
-  const book={asin:"B000000000",salePrice:30,referral:15,closing:1.8,fulfillment:"FBA",sellerPlan:"Individual",fbaFee:3.5,market:{amazonMatch:"Exact ISBN match",eligibility:"Eligible",salesRank:"45000",avgRank90:"62000",soldDays180:"12"}};
+  const book={asin:"B000000000",salePrice:30,referral:15,closing:1.8,fulfillment:"FBA",sellerPlan:"Individual",fbaFee:3.5,market:{amazonMatch:"Exact ISBN match",condition:"Used - Very Good",eligibility:"Eligible",eligibilityFor:"Used - Very Good",salesRank:"45000",avgRank90:"62000",soldDays180:"12"}};
   const offer={price:8,shipping:1,tax:.56,other:.2,matchStatus:"Exact ISBN match",seller:"Walmart.com",availability:"In stock"};
   assert.equal(fn(book,offer).decision,"MEETS TARGET");
   assert.equal(fn(book,{...offer,matchStatus:"Not verified"}).decision,"VERIFY RETAILER EDITION");
@@ -89,7 +89,7 @@ test("a deal cannot reach MEETS TARGET until retailer, Amazon, eligibility and d
   assert.equal(fn(book,{...offer,availability:"Unknown"}).decision,"VERIFY STOCK");
   assert.equal(fn(book,{...offer,seller:""}).decision,"VERIFY SELLER");
   assert.equal(fn({...book,market:{...book.market,amazonMatch:"Not verified"}},offer).decision,"VERIFY AMAZON LISTING");
-  assert.equal(fn({...book,market:{...book.market,eligibility:"Not checked"}},offer).decision,"CHECK SELLER ELIGIBILITY");
+  assert.equal(fn({...book,market:{...book.market,eligibility:"Not checked"}},offer).decision,"CHECK CONDITION-SPECIFIC ELIGIBILITY");
   assert.equal(fn({...book,market:{...book.market,soldDays180:""}},offer).decision,"CHECK DEMAND");
   assert.equal(fn({...book,market:{...book.market,soldDays180:"0"}},offer).decision,"LOW SALES ACTIVITY");
   assert.equal(fn({...book,market:{...book.market,salesRank:"not a rank"}},offer).decision,"CHECK DEMAND");
@@ -113,4 +113,22 @@ test("FBM profit includes buyer shipping in revenue and referral fee plus plan o
   assert.ok(Math.abs(r.fee-10.75)<1e-9);
   assert.ok(Math.abs(r.profit-7.25)<1e-9);
   assert.ok(Math.abs(r.maxCost-(7.25/1.5))<1e-9);
+});
+
+test("FBA surcharge is added only when the user explicitly enters a base fee",()=>{
+  const block=js.slice(js.indexOf("function feeConfig"),js.indexOf("function retailerHtml"));
+  const fields={salePrice:"30",referral:"15",closing:"1.80",fulfillment:{value:"FBA"},sellerPlan:{value:"Individual"},fbaFee:"10",fbaFeeMode:{value:"base"},fbmCost:"4",prepInbound:"0",extraFees:"0",reserve:"0",buyerShipping:"0",planAllocation:"0"};
+  const $=id=>typeof fields[id]==="object"?fields[id]:({value:fields[id]??""});
+  const num=id=>Number(fields[id]?.value??fields[id]??0);
+  const fns=new Function("$","num","settings",block+"return feeConfig;")($,num,{minProfit:5,minRoi:50});
+  assert.ok(Math.abs(fns().fulfillment-10.35)<1e-9);
+  assert.ok(Math.abs(fns().fbaSurcharge-.35)<1e-9);
+  fields.fbaFeeMode.value="allIn";
+  assert.equal(fns().fulfillment,10);
+  assert.equal(fns().fbaSurcharge,0);
+});
+test("bulk ISBN queue, continuous scanning, edition choices and eligibility condition checks are present",()=>{
+  for(const s of ["isbnBatch","addBatch","loadNextIsbn","continuousScan","titleCandidates","eligibilityFor","fbaFeeMode","CHECK CONDITION-SPECIFIC ELIGIBILITY"]) assert.ok(html.includes(s),s);
+  assert.match(js,/isbnQueue\.some\(x=>x\.isbn===isbn\)/);
+  assert.match(js,/titleCandidates\.map\(\(b,i\)=>/);
 });
